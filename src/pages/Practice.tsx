@@ -208,7 +208,7 @@ export function PracticePage() {
         setFeedback(null);
         setIsProcessing(false);
         setUserAnswer('');
-      }, 1000);
+      }, 2000);
     }
   };
 

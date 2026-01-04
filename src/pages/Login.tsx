@@ -68,8 +68,8 @@ export function LoginPage() {
               <Plane className="w-16 h-16 text-white" />
             </div>
           </motion.div>
-          <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
-            Math Playground
+          <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">
+            Michael's Math Fighter Jet Adventure
           </h1>
           <p className="text-sky-100 text-lg">
             Ready for takeoff, pilot?
