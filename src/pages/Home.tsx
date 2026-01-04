@@ -347,20 +347,18 @@ export function HomePage() {
               )}
 
               {config.mode === 'time' && (
-                <div className="grid grid-cols-4 gap-2">
-                  {[2, 5, 10, 15].map(mins => (
-                    <button
-                      key={mins}
-                      onClick={() => setConfig(c => ({ ...c, timeLimitMinutes: mins }))}
-                      className={`p-2 rounded-lg font-medium transition-colors ${
-                        config.timeLimitMinutes === mins
-                          ? 'bg-amber-500 text-white'
-                          : 'bg-slate-700 text-slate-400'
-                      }`}
-                    >
-                      {mins}m
-                    </button>
-                  ))}
+                <div>
+                  <select
+                    value={config.timeLimitMinutes || 5}
+                    onChange={(e) => setConfig(c => ({ ...c, timeLimitMinutes: parseInt(e.target.value) }))}
+                    className="w-full p-3 rounded-xl bg-slate-700 text-white font-medium border border-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  >
+                    {[1, 2, 3, 5, 10, 15, 20, 30].map(mins => (
+                      <option key={mins} value={mins}>
+                        {mins} {mins === 1 ? 'minute' : 'minutes'}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               )}
             </div>
