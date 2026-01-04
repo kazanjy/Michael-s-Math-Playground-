@@ -4,6 +4,7 @@ import { Plane, Mail, Loader2 } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { isSupabaseConfigured } from '../lib/supabase';
+import { DogfightBackground } from '../components/backgrounds/DogfightBackground';
 
 export function LoginPage() {
   const { signInWithMagicLink, enterDemoMode } = useAuth();
@@ -31,25 +32,8 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-400 via-sky-600 to-slate-800 flex flex-col items-center justify-center p-4">
-      {/* Animated background jets */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(5)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute text-4xl opacity-20"
-            initial={{ x: -100, y: 100 + i * 150 }}
-            animate={{ x: '100vw' }}
-            transition={{
-              duration: 15 + i * 5,
-              repeat: Infinity,
-              ease: 'linear',
-              delay: i * 3,
-            }}
-          >
-            ✈️
-          </motion.div>
-        ))}
-      </div>
+      {/* Epic dogfight background! */}
+      <DogfightBackground />
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
