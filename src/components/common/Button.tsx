@@ -9,6 +9,7 @@ interface ButtonProps {
   disabled?: boolean;
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
+  title?: string;
 }
 
 const variants = {
@@ -34,6 +35,7 @@ export function Button({
   disabled,
   onClick,
   type = 'button',
+  title,
 }: ButtonProps) {
   return (
     <motion.button
@@ -49,6 +51,7 @@ export function Button({
       disabled={disabled}
       onClick={onClick}
       type={type}
+      title={title}
     >
       {children}
     </motion.button>

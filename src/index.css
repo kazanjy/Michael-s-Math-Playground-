@@ -21,3 +21,19 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* Buttons should use pointer cursor (standards-compliant interactive element styling) */
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+/* Ensure select elements also use pointer */
+select:not(:disabled) {
+  cursor: pointer;
+}
+
+/* Checkboxes and interactive inputs */
+input[type="checkbox"]:not(:disabled),
+input[type="radio"]:not(:disabled) {
+  cursor: pointer;
+}

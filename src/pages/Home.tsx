@@ -569,6 +569,7 @@ export function HomePage() {
             className="w-full"
             onClick={startSession}
             disabled={!canStart}
+            title="Begin your math practice mission with the selected settings"
           >
             <Play className="w-6 h-6 mr-2" /> Start Mission
           </Button>

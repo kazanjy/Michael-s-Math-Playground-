@@ -120,6 +120,7 @@ export function NumberPad({
           whileTap={{ scale: disabled ? 1 : 0.95 }}
           onClick={onSubmit}
           disabled={disabled || value === ''}
+          title="Submit your answer (or press Enter)"
           className={`
             w-20 h-20 sm:w-24 sm:h-24
             rounded-2xl

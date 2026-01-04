@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Rank } from '../../types';
 
@@ -21,6 +21,15 @@ export function LevelUpCelebration({
     setIsVisible(false);
     setTimeout(onDismiss, 500);
   };
+
+  // Dismiss on any keypress
+  useEffect(() => {
+    const handleKeyDown = () => {
+      handleDismiss();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   if (variant === 'mini') {
     return (
@@ -222,14 +231,14 @@ function FullLevelUp({
               </motion.div>
             )}
 
-            {/* Tap to continue */}
+            {/* Press any key to continue */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: [0, 1, 0.5, 1] }}
               transition={{ delay: 2, duration: 2, repeat: Infinity }}
               className="text-center text-slate-500 text-sm"
             >
-              Tap anywhere to continue
+              Press any key to continue
             </motion.div>
           </motion.div>
         </motion.div>
