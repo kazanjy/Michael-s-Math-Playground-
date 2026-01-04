@@ -107,8 +107,8 @@ function FullLevelUp({
   isVisible: boolean;
   onDismiss: () => void;
 }) {
-  // Determine unlocks based on new rank
-  const unlocks = getUnlocksForRank(newRank.level);
+  // Determine unlocks based on rank change
+  const unlocks = getUnlocksForRank(oldRank, newRank);
 
   return (
     <AnimatePresence>
@@ -331,36 +331,53 @@ function JetTrails({ count, fullScreen = false }: { count: number; fullScreen?: 
   );
 }
 
-// Get congratulatory message based on rank
+// Get congratulatory message based on rank - uses actual rank data
 function getCongratMessage(rank: Rank): string {
-  const messages: Record<number, string> = {
-    2: "You've earned your wings and the classic F-4 Phantom II!",
-    3: "The nimble F-5 Tiger joins your fleet, Corporal!",
-    4: "Sergeant! The legendary F-14 Tomcat is yours!",
-    5: "Lieutenant! You've unlocked the mighty F-15 Eagle!",
-    6: "Captain! The F-16 Fighting Falcon awaits your command!",
-    7: "Major! The versatile F/A-18 Hornet is now in your hangar!",
-    8: "Colonel! The stealth F-22 Raptor is yours to fly!",
-    9: "Commander! You've earned the advanced F-35 Lightning II!",
-    10: "General! Your fleet is complete - all jets unlocked!",
-    11: "ACE PILOT! You've mastered math and earned the Golden Fleet!",
-  };
-  return messages[rank.level] || "Congratulations on your promotion!";
+  // Special messages for milestone ranks
+  if (rank.level === 30) {
+    return `${rank.title}! You've reached the pinnacle - the legendary ${rank.jet} is yours!`;
+  }
+  if (rank.level >= 28) {
+    return `${rank.title}! You've earned the ultra-rare ${rank.jet}!`;
+  }
+  if (rank.level >= 22) {
+    return `${rank.title}! The elite ${rank.jet} joins your hangar!`;
+  }
+  if (rank.level >= 16) {
+    return `${rank.title}! The powerful ${rank.jet} is now yours to command!`;
+  }
+  if (rank.level >= 10) {
+    return `${rank.title}! You've unlocked the legendary ${rank.jet}!`;
+  }
+  if (rank.level >= 4) {
+    return `${rank.title}! The ${rank.jet} joins your fleet!`;
+  }
+  // Early ranks (still on T-38 Talon)
+  return `Congratulations, ${rank.title}! Keep training to unlock new jets!`;
 }
 
-// Get unlocks for a rank level
-function getUnlocksForRank(level: number): string[] {
-  const unlocks: Record<number, string[]> = {
-    2: ['🛩️ F-4 Phantom II'],
-    3: ['🛩️ F-5 Tiger'],
-    4: ['✈️ F-14 Tomcat'],
-    5: ['✈️ F-15 Eagle'],
-    6: ['🚀 F-16 Fighting Falcon'],
-    7: ['🚀 F/A-18 Hornet'],
-    8: ['⚡ F-22 Raptor'],
-    9: ['⚡ F-35 Lightning II'],
-    10: ['👑 All Jets Unlocked'],
-    11: ['🌟 Ace Pilot Badge', '✨ Golden Fleet'],
-  };
-  return unlocks[level] || [];
+// Get unlocks for a rank change - only shows jet when it actually changes
+function getUnlocksForRank(oldRank: Rank, newRank: Rank): string[] {
+  const unlocks: string[] = [];
+
+  // Check if jet changed
+  if (newRank.jet !== oldRank.jet) {
+    unlocks.push(`${newRank.jetIcon} ${newRank.jet}`);
+  }
+
+  // Special milestone unlocks
+  if (newRank.level === 30) {
+    unlocks.push('🏆 Living Legend Badge');
+    unlocks.push('👑 Complete Fleet Mastery');
+  } else if (newRank.level >= 28 && oldRank.level < 28) {
+    unlocks.push('🌟 Ace Pilot Badge');
+  } else if (newRank.level >= 22 && oldRank.level < 22) {
+    unlocks.push('⚡ Stealth Squadron');
+  } else if (newRank.level >= 16 && oldRank.level < 16) {
+    unlocks.push('🎖️ Officer Corps');
+  } else if (newRank.level >= 10 && oldRank.level < 10) {
+    unlocks.push('💎 Senior NCO');
+  }
+
+  return unlocks;
 }
