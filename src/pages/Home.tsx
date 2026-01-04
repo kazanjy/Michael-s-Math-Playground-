@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, LogOut, Trophy, Zap, Clock, Hash, History, ChevronDown, ChevronUp } from 'lucide-react';
+import { Play, LogOut, Trophy, Zap, Clock, Hash, History } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { createDefaultSessionConfig, DIGIT_COMBOS, computeOperations } from '../types';
@@ -104,10 +104,6 @@ export function HomePage() {
 
   // Session configuration state - load from localStorage
   const [config, setConfig] = useState<SessionConfig>(loadCustomConfig);
-
-  // Collapsible sections
-  const [speedTablesExpanded, setSpeedTablesExpanded] = useState(true);
-  const [mentalMathExpanded, setMentalMathExpanded] = useState(true);
 
   // Load mission history on mount
   useEffect(() => {
@@ -278,204 +274,175 @@ export function HomePage() {
           </h2>
 
           {/* Speed Times Tables Section */}
-          <div className="bg-slate-800/50 rounded-2xl border border-slate-700 overflow-hidden">
-            <button
-              onClick={() => setSpeedTablesExpanded(!speedTablesExpanded)}
-              className="w-full p-4 flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={config.speedTimesTablesEnabled}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    setConfig(c => ({ ...c, speedTimesTablesEnabled: !c.speedTimesTablesEnabled }));
-                  }}
-                  className="w-5 h-5 rounded accent-blue-500"
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <div className="text-left">
-                  <h3 className="text-white font-bold text-lg">Speed Times Tables</h3>
-                  <p className="text-slate-400 text-sm">Practice multiplication & division facts</p>
+          <div className={`bg-slate-800/50 rounded-2xl border overflow-hidden ${config.speedTimesTablesEnabled ? 'border-blue-500/50' : 'border-slate-700'}`}>
+            <div className="p-4 flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={config.speedTimesTablesEnabled}
+                onChange={() => setConfig(c => ({ ...c, speedTimesTablesEnabled: !c.speedTimesTablesEnabled }))}
+                className="w-5 h-5 rounded accent-blue-500"
+              />
+              <div>
+                <h3 className="text-white font-bold text-lg">Speed Times Tables</h3>
+                <p className="text-slate-400 text-sm">Practice multiplication & division facts</p>
+              </div>
+            </div>
+
+            <div className={`px-4 pb-4 space-y-4 ${!config.speedTimesTablesEnabled ? 'opacity-50' : ''}`}>
+              {/* Operations */}
+              <div>
+                <h4 className="text-slate-300 text-sm font-medium mb-2">Operations</h4>
+                <div className="flex gap-2">
+                  {(['multiply', 'divide'] as const).map(op => (
+                    <button
+                      key={op}
+                      onClick={() => toggleSpeedOperation(op)}
+                      disabled={!config.speedTimesTablesEnabled}
+                      className={`flex-1 p-2 rounded-lg font-medium transition-colors ${
+                        config.speedOperations.includes(op)
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-slate-700 text-slate-400'
+                      } ${!config.speedTimesTablesEnabled ? 'cursor-not-allowed' : ''}`}
+                    >
+                      {op === 'multiply' ? '× Multiply' : '÷ Divide'}
+                    </button>
+                  ))}
                 </div>
               </div>
-              {speedTablesExpanded ? (
-                <ChevronUp className="w-5 h-5 text-slate-400" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-slate-400" />
-              )}
-            </button>
 
-            {speedTablesExpanded && config.speedTimesTablesEnabled && (
-              <div className="px-4 pb-4 space-y-4">
-                {/* Operations */}
-                <div>
-                  <h4 className="text-slate-300 text-sm font-medium mb-2">Operations</h4>
-                  <div className="flex gap-2">
-                    {(['multiply', 'divide'] as const).map(op => (
-                      <button
-                        key={op}
-                        onClick={() => toggleSpeedOperation(op)}
-                        className={`flex-1 p-2 rounded-lg font-medium transition-colors ${
-                          config.speedOperations.includes(op)
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-slate-700 text-slate-400'
-                        }`}
-                      >
-                        {op === 'multiply' ? '× Multiply' : '÷ Divide'}
-                      </button>
-                    ))}
-                  </div>
+              {/* Tables to practice */}
+              <div>
+                <h4 className="text-slate-300 text-sm font-medium mb-2">Tables</h4>
+                <div className="grid grid-cols-6 gap-2">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (
+                    <button
+                      key={num}
+                      onClick={() => togglePrimaryNumber(num)}
+                      disabled={!config.speedTimesTablesEnabled}
+                      className={`p-2 rounded-lg font-bold transition-colors ${
+                        config.primaryNumbers.includes(num)
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-slate-700 text-slate-400'
+                      } ${!config.speedTimesTablesEnabled ? 'cursor-not-allowed' : ''}`}
+                    >
+                      {num}
+                    </button>
+                  ))}
                 </div>
+              </div>
 
-                {/* Tables to practice */}
-                <div>
-                  <h4 className="text-slate-300 text-sm font-medium mb-2">Tables</h4>
-                  <div className="grid grid-cols-6 gap-2">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (
+              {/* Multiplier ranges */}
+              <div>
+                <h4 className="text-slate-300 text-sm font-medium mb-2">Multiply By</h4>
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { label: '1-5', min: 1, max: 5 },
+                    { label: '6-10', min: 6, max: 10 },
+                    { label: '11-15', min: 11, max: 15 },
+                    { label: '16-20', min: 16, max: 20 },
+                  ].map(range => {
+                    const isSelected = config.multiplierRanges.some(
+                      r => r.min === range.min && r.max === range.max
+                    );
+                    return (
                       <button
-                        key={num}
-                        onClick={() => togglePrimaryNumber(num)}
-                        className={`p-2 rounded-lg font-bold transition-colors ${
-                          config.primaryNumbers.includes(num)
-                            ? 'bg-amber-500 text-white'
-                            : 'bg-slate-700 text-slate-400'
-                        }`}
-                      >
-                        {num}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Multiplier ranges */}
-                <div>
-                  <h4 className="text-slate-300 text-sm font-medium mb-2">Multiply By</h4>
-                  <div className="grid grid-cols-4 gap-2">
-                    {[
-                      { label: '1-5', min: 1, max: 5 },
-                      { label: '6-10', min: 6, max: 10 },
-                      { label: '11-15', min: 11, max: 15 },
-                      { label: '16-20', min: 16, max: 20 },
-                    ].map(range => {
-                      const isSelected = config.multiplierRanges.some(
-                        r => r.min === range.min && r.max === range.max
-                      );
-                      return (
-                        <button
-                          key={range.label}
-                          onClick={() => {
-                            setConfig(c => {
-                              const existing = c.multiplierRanges.find(
-                                r => r.min === range.min && r.max === range.max
+                        key={range.label}
+                        disabled={!config.speedTimesTablesEnabled}
+                        onClick={() => {
+                          setConfig(c => {
+                            const existing = c.multiplierRanges.find(
+                              r => r.min === range.min && r.max === range.max
+                            );
+                            if (existing) {
+                              const filtered = c.multiplierRanges.filter(
+                                r => r.min !== range.min || r.max !== range.max
                               );
-                              if (existing) {
-                                const filtered = c.multiplierRanges.filter(
-                                  r => r.min !== range.min || r.max !== range.max
-                                );
-                                return {
-                                  ...c,
-                                  multiplierRanges: filtered.length > 0 ? filtered : c.multiplierRanges,
-                                };
-                              }
                               return {
                                 ...c,
-                                multiplierRanges: [...c.multiplierRanges, { min: range.min, max: range.max }],
+                                multiplierRanges: filtered.length > 0 ? filtered : c.multiplierRanges,
                               };
-                            });
-                          }}
-                          className={`p-2 rounded-lg font-medium transition-colors text-sm ${
-                            isSelected
-                              ? 'bg-emerald-600 text-white'
-                              : 'bg-slate-700 text-slate-400'
-                          }`}
-                        >
-                          {range.label}
-                        </button>
-                      );
-                    })}
-                  </div>
+                            }
+                            return {
+                              ...c,
+                              multiplierRanges: [...c.multiplierRanges, { min: range.min, max: range.max }],
+                            };
+                          });
+                        }}
+                        className={`p-2 rounded-lg font-medium transition-colors text-sm ${
+                          isSelected
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-slate-700 text-slate-400'
+                        } ${!config.speedTimesTablesEnabled ? 'cursor-not-allowed' : ''}`}
+                      >
+                        {range.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
           {/* General Mental Math Section */}
-          <div className="bg-slate-800/50 rounded-2xl border border-slate-700 overflow-hidden">
-            <button
-              onClick={() => setMentalMathExpanded(!mentalMathExpanded)}
-              className="w-full p-4 flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={config.generalMentalMathEnabled}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    setConfig(c => ({ ...c, generalMentalMathEnabled: !c.generalMentalMathEnabled }));
-                  }}
-                  className="w-5 h-5 rounded accent-purple-500"
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <div className="text-left">
-                  <h3 className="text-white font-bold text-lg">General Mental Math</h3>
-                  <p className="text-slate-400 text-sm">Multi-digit arithmetic practice</p>
-                </div>
+          <div className={`bg-slate-800/50 rounded-2xl border overflow-hidden ${config.generalMentalMathEnabled ? 'border-purple-500/50' : 'border-slate-700'}`}>
+            <div className="p-4 flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={config.generalMentalMathEnabled}
+                onChange={() => setConfig(c => ({ ...c, generalMentalMathEnabled: !c.generalMentalMathEnabled }))}
+                className="w-5 h-5 rounded accent-purple-500"
+              />
+              <div>
+                <h3 className="text-white font-bold text-lg">General Mental Math</h3>
+                <p className="text-slate-400 text-sm">Multi-digit arithmetic practice</p>
               </div>
-              {mentalMathExpanded ? (
-                <ChevronUp className="w-5 h-5 text-slate-400" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-slate-400" />
-              )}
-            </button>
+            </div>
 
-            {mentalMathExpanded && config.generalMentalMathEnabled && (
-              <div className="px-4 pb-4 space-y-4">
-                {/* Operations with digit combos */}
-                {(['multiply', 'divide', 'add', 'subtract'] as Operation[]).map(op => {
-                  const isEnabled = config.mentalMathOperations.includes(op);
-                  const comboKey = `${op}DigitCombos` as keyof SessionConfig;
-                  const combos = (config[comboKey] as DigitCombo[]) || [];
+            <div className={`px-4 pb-4 space-y-4 ${!config.generalMentalMathEnabled ? 'opacity-50' : ''}`}>
+              {/* Operations with digit combos */}
+              {(['multiply', 'divide', 'add', 'subtract'] as Operation[]).map(op => {
+                const isEnabled = config.mentalMathOperations.includes(op);
+                const comboKey = `${op}DigitCombos` as keyof SessionConfig;
+                const combos = (config[comboKey] as DigitCombo[]) || [];
 
-                  return (
-                    <div key={op} className="bg-slate-700/50 rounded-xl p-3">
-                      <div className="flex items-center gap-3 mb-2">
-                        <input
-                          type="checkbox"
-                          checked={isEnabled}
-                          onChange={() => toggleMentalMathOperation(op)}
-                          className="w-4 h-4 rounded accent-purple-500"
-                        />
-                        <span className={`font-medium ${isEnabled ? 'text-white' : 'text-slate-500'}`}>
-                          {op === 'multiply' && '× Multiplication'}
-                          {op === 'divide' && '÷ Division'}
-                          {op === 'add' && '+ Addition'}
-                          {op === 'subtract' && '− Subtraction'}
-                        </span>
-                      </div>
-
-                      {isEnabled && (
-                        <div className="flex flex-wrap gap-2 ml-7">
-                          {DIGIT_COMBOS.map(combo => (
-                            <button
-                              key={combo}
-                              onClick={() => toggleDigitCombo(op, combo)}
-                              className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                                combos.includes(combo)
-                                  ? 'bg-purple-600 text-white'
-                                  : 'bg-slate-600 text-slate-400'
-                              }`}
-                            >
-                              {combo.replace('x', '×')}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                return (
+                  <div key={op} className="bg-slate-700/50 rounded-xl p-3">
+                    <div className="flex items-center gap-3 mb-2">
+                      <input
+                        type="checkbox"
+                        checked={isEnabled}
+                        onChange={() => toggleMentalMathOperation(op)}
+                        disabled={!config.generalMentalMathEnabled}
+                        className="w-4 h-4 rounded accent-purple-500"
+                      />
+                      <span className={`font-medium ${isEnabled && config.generalMentalMathEnabled ? 'text-white' : 'text-slate-500'}`}>
+                        {op === 'multiply' && '× Multiplication'}
+                        {op === 'divide' && '÷ Division'}
+                        {op === 'add' && '+ Addition'}
+                        {op === 'subtract' && '− Subtraction'}
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+
+                    <div className={`flex flex-wrap gap-2 ml-7 ${!isEnabled ? 'opacity-50' : ''}`}>
+                      {DIGIT_COMBOS.map(combo => (
+                        <button
+                          key={combo}
+                          onClick={() => toggleDigitCombo(op, combo)}
+                          disabled={!config.generalMentalMathEnabled || !isEnabled}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                            combos.includes(combo)
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-slate-600 text-slate-400'
+                          } ${(!config.generalMentalMathEnabled || !isEnabled) ? 'cursor-not-allowed' : ''}`}
+                        >
+                          {combo.replace('x', '×')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Session Settings */}
