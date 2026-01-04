@@ -91,6 +91,7 @@ export function PracticePage() {
   const [dogfightResult, setDogfightResult] = useState<DogfightResult | null>(null);
   const [resourceStats, setResourceStats] = useState<SessionResourceStats>(createEmptyResourceStats);
   const sessionXpAccumulator = useRef(0); // Track XP for resource earning
+  const dogfightCompleteAction = useRef<(() => void) | null>(null); // Action to run when user dismisses dogfight
 
   // Timer state
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -339,6 +340,17 @@ export function PracticePage() {
       // Trigger dogfight if answer was slow (> 5 seconds)
       const wasSlowAnswer = responseTime > TIME_THRESHOLDS.learning;
       if (wasSlowAnswer) {
+        // Store the action to run when user dismisses dogfight
+        dogfightCompleteAction.current = () => {
+          setIsProcessing(false);
+          const next = getNextQuestion(newAnswersLength);
+          setCurrentQuestion(next.question);
+          setIsReviewQuestion(next.isReview);
+          setUserAnswer('');
+          setAttempts(0);
+          setQuestionStartTime(Date.now());
+        };
+
         // Delay feedback dismissal to show dogfight
         setTimeout(() => {
           setFeedback(null);
@@ -362,18 +374,6 @@ export function PracticePage() {
             return updatedResources;
           });
         }, 1500);
-
-        // Wait for dogfight to complete before moving to next question
-        setTimeout(() => {
-          setDogfightResult(null);
-          setIsProcessing(false);
-          const next = getNextQuestion(newAnswersLength);
-          setCurrentQuestion(next.question);
-          setIsReviewQuestion(next.isReview);
-          setUserAnswer('');
-          setAttempts(0);
-          setQuestionStartTime(Date.now());
-        }, 4500); // 1.5s feedback + 3s dogfight
       } else {
         // Normal flow without dogfight (fast answer)
         setTimeout(() => {
@@ -419,6 +419,12 @@ export function PracticePage() {
 
       // Trigger dogfight on first wrong attempt
       if (newAttempts === 1) {
+        // Store the action to run when user dismisses dogfight
+        dogfightCompleteAction.current = () => {
+          setIsProcessing(false);
+          setUserAnswer('');
+        };
+
         // Show feedback, then dogfight
         setTimeout(() => {
           setFeedback(null);
@@ -442,13 +448,6 @@ export function PracticePage() {
             return updatedResources;
           });
         }, 2000);
-
-        // Wait for dogfight to complete before letting them try again
-        setTimeout(() => {
-          setDogfightResult(null);
-          setIsProcessing(false);
-          setUserAnswer('');
-        }, 5000); // 2s feedback + 3s dogfight
       } else {
         // Subsequent wrong attempts - just clear and let them try again
         setTimeout(() => {
@@ -649,7 +648,14 @@ export function PracticePage() {
         {dogfightResult && (
           <DogfightOverlay
             result={dogfightResult}
-            onComplete={() => setDogfightResult(null)}
+            onComplete={() => {
+              setDogfightResult(null);
+              // Execute the stored action (move to next question or retry)
+              if (dogfightCompleteAction.current) {
+                dogfightCompleteAction.current();
+                dogfightCompleteAction.current = null;
+              }
+            }}
           />
         )}
       </AnimatePresence>

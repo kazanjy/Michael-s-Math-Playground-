@@ -10,9 +10,6 @@ interface DogfightOverlayProps {
 export function DogfightOverlay({ result, onComplete }: DogfightOverlayProps) {
   if (!result || !result.occurred) return null;
 
-  // Auto-dismiss after animation
-  setTimeout(onComplete, 3000);
-
   // Check if any resources were used
   const hasWeapon = result.missilesUsed > 0 || result.bulletsUsed > 0;
   const hasCountermeasure = result.flaresUsed > 0 || result.chaffUsed > 0;
@@ -203,26 +200,39 @@ export function DogfightOverlay({ result, onComplete }: DogfightOverlayProps) {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8, type: 'spring' }}
-            className={`absolute bottom-4 left-4 right-4 py-4 rounded-xl text-center ${
-              result.victory
-                ? 'bg-emerald-500/80'
-                : 'bg-red-500/80'
-            }`}
+            className="absolute bottom-4 left-4 right-4"
           >
-            {result.victory ? (
-              <div className="text-2xl font-bold text-white drop-shadow">
-                🎯 VICTORY! 🎯
-              </div>
-            ) : (
-              <div>
+            <div
+              className={`py-3 rounded-xl text-center mb-2 ${
+                result.victory
+                  ? 'bg-emerald-500/80'
+                  : 'bg-red-500/80'
+              }`}
+            >
+              {result.victory ? (
                 <div className="text-2xl font-bold text-white drop-shadow">
-                  💥 TOOK DAMAGE!
+                  🎯 VICTORY! 🎯
                 </div>
-                <div className="text-lg text-white/90 font-bold mt-1">
-                  -{result.xpLost} XP
+              ) : (
+                <div>
+                  <div className="text-2xl font-bold text-white drop-shadow">
+                    💥 TOOK DAMAGE!
+                  </div>
+                  <div className="text-lg text-white/90 font-bold mt-1">
+                    -{result.xpLost} XP
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.2 }}
+              onClick={onComplete}
+              className="w-full py-3 bg-white/20 hover:bg-white/30 active:bg-white/40 rounded-xl text-white font-bold text-lg transition-colors"
+            >
+              Continue
+            </motion.button>
           </motion.div>
         </motion.div>
       </motion.div>
