@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Home, RotateCcw, Trophy, Target, Clock, Zap, TrendingUp } from 'lucide-react';
 import { Button } from '../components/common/Button';
+import { LevelUpCelebration } from '../components/celebration/LevelUpCelebration';
 import { useAuth } from '../contexts/AuthContext';
-import { getXPProgressToNextRank } from '../lib/xpCalculator';
-import type { Answer, SessionConfig } from '../types';
+import { getXPProgressToNextRank, getRankForXP } from '../lib/xpCalculator';
+import type { Answer, SessionConfig, Rank } from '../types';
 
 interface SessionResult {
   answers: Answer[];
@@ -13,19 +14,36 @@ interface SessionResult {
   bestStreak: number;
   elapsedTime: number;
   config: SessionConfig;
+  startingRank?: Rank;
 }
 
 export function SummaryPage() {
   const navigate = useNavigate();
   const { currentChild } = useAuth();
   const [result, setResult] = useState<SessionResult | null>(null);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [levelUpInfo, setLevelUpInfo] = useState<{ oldRank: Rank; newRank: Rank } | null>(null);
 
   useEffect(() => {
     const stored = sessionStorage.getItem('sessionResult');
     if (stored) {
-      setResult(JSON.parse(stored));
+      const parsedResult = JSON.parse(stored) as SessionResult;
+      setResult(parsedResult);
+
+      // Check for level up
+      if (parsedResult.startingRank && currentChild) {
+        const newRank = getRankForXP(currentChild.totalXp);
+        if (newRank.level > parsedResult.startingRank.level) {
+          setLevelUpInfo({
+            oldRank: parsedResult.startingRank,
+            newRank: newRank,
+          });
+          // Show celebration after a short delay
+          setTimeout(() => setShowLevelUp(true), 500);
+        }
+      }
     }
-  }, []);
+  }, [currentChild]);
 
   if (!result) {
     return (
@@ -251,6 +269,16 @@ export function SummaryPage() {
           </Button>
         </motion.div>
       </div>
+
+      {/* Level up celebration */}
+      {showLevelUp && levelUpInfo && (
+        <LevelUpCelebration
+          oldRank={levelUpInfo.oldRank}
+          newRank={levelUpInfo.newRank}
+          onDismiss={() => setShowLevelUp(false)}
+          variant="full"
+        />
+      )}
     </div>
   );
 }

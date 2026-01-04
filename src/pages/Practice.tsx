@@ -5,10 +5,11 @@ import { X, Clock, Target, Zap } from 'lucide-react';
 import { NumberPad } from '../components/calculator/NumberPad';
 import { QuestionCard } from '../components/question/QuestionCard';
 import { Feedback } from '../components/question/Feedback';
+import { LevelUpCelebration } from '../components/celebration/LevelUpCelebration';
 import { useAuth } from '../contexts/AuthContext';
 import { generateQuestion } from '../lib/questionGenerator';
-import { calculateXP, type XPResult } from '../lib/xpCalculator';
-import type { SessionConfig, Question, Answer } from '../types';
+import { calculateXP, getRankForXP, type XPResult } from '../lib/xpCalculator';
+import type { SessionConfig, Question, Answer, Rank } from '../types';
 
 type FeedbackState = {
   isCorrect: boolean;
@@ -49,6 +50,13 @@ export function PracticePage() {
   const [feedback, setFeedback] = useState<FeedbackState>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Level up tracking
+  const [startingRank] = useState<Rank>(() =>
+    currentChild ? getRankForXP(currentChild.totalXp) : getRankForXP(0)
+  );
+  const [levelUpInfo, setLevelUpInfo] = useState<{ oldRank: Rank; newRank: Rank } | null>(null);
+  const lastCheckedXpRef = useRef(currentChild?.totalXp || 0);
+
   // Timer state
   const [elapsedTime, setElapsedTime] = useState(0);
   const [questionStartTime, setQuestionStartTime] = useState(Date.now());
@@ -82,6 +90,7 @@ export function PracticePage() {
         bestStreak,
         elapsedTime,
         config,
+        startingRank,
       };
       sessionStorage.setItem('sessionResult', JSON.stringify(sessionData));
 
@@ -150,8 +159,18 @@ export function PracticePage() {
         setBestStreak(newStreak);
       }
 
-      // Update XP
-      setTotalXp(prev => prev + xpResult.totalXp);
+      // Update XP and check for level up
+      const newSessionXp = totalXp + xpResult.totalXp;
+      setTotalXp(newSessionXp);
+
+      // Check for level up
+      const currentTotalXp = (currentChild?.totalXp || 0) + newSessionXp;
+      const oldRank = getRankForXP(lastCheckedXpRef.current + totalXp);
+      const newRank = getRankForXP(currentTotalXp);
+
+      if (newRank.level > oldRank.level) {
+        setLevelUpInfo({ oldRank, newRank });
+      }
 
       // Show feedback
       setFeedback({
@@ -202,6 +221,7 @@ export function PracticePage() {
         bestStreak,
         elapsedTime,
         config,
+        startingRank,
       };
       sessionStorage.setItem('sessionResult', JSON.stringify(sessionData));
 
@@ -312,6 +332,16 @@ export function PracticePage() {
           />
         )}
       </AnimatePresence>
+
+      {/* Level up celebration (mini version during practice) */}
+      {levelUpInfo && (
+        <LevelUpCelebration
+          oldRank={levelUpInfo.oldRank}
+          newRank={levelUpInfo.newRank}
+          onDismiss={() => setLevelUpInfo(null)}
+          variant="mini"
+        />
+      )}
     </div>
   );
 }
