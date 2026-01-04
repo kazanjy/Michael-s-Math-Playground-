@@ -231,8 +231,9 @@ export function PracticePage() {
       }
 
       // Check if this correct answer was slow (needs review later)
+      // Only add if: slow, not already a review, AND no wrong attempts (wrong attempts already added it)
       const needsReview = responseTime > TIME_THRESHOLDS.learning; // > 5 seconds
-      if (needsReview && !isReviewQuestion) {
+      if (needsReview && !isReviewQuestion && attempts === 0) {
         // Add to review queue - show again after 2-3 more questions
         const showAfter = answers.length + 3;
         setReviewQueue(prev => {
