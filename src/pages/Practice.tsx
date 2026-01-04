@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, Target, Zap } from 'lucide-react';
+import { X, Clock, Target, Zap, RotateCcw } from 'lucide-react';
 import { NumberPad } from '../components/calculator/NumberPad';
 import { QuestionCard } from '../components/question/QuestionCard';
 import { Feedback } from '../components/question/Feedback';
@@ -11,12 +11,20 @@ import { generateQuestion } from '../lib/questionGenerator';
 import { calculateXP, getRankForXP, type XPResult } from '../lib/xpCalculator';
 import { recordFactAttempt } from '../lib/factMastery';
 import type { SessionConfig, Question, Answer, Rank } from '../types';
+import { TIME_THRESHOLDS } from '../types';
 
 type FeedbackState = {
   isCorrect: boolean;
   correctAnswer: number;
   xpResult: XPResult;
 } | null;
+
+// Review queue item - questions that need to be reviewed
+interface ReviewItem {
+  question: Question;
+  showAfterQuestion: number; // Show this review after N questions have been answered
+  resolved: boolean; // Has this been answered correctly?
+}
 
 export function PracticePage() {
   const navigate = useNavigate();
@@ -53,6 +61,10 @@ export function PracticePage() {
   const [feedback, setFeedback] = useState<FeedbackState>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Review queue for facts that need reinforcement
+  const [reviewQueue, setReviewQueue] = useState<ReviewItem[]>([]);
+  const [isReviewQuestion, setIsReviewQuestion] = useState(false);
+
   // Level up tracking
   const [startingRank] = useState<Rank>(() =>
     currentChild ? getRankForXP(currentChild.totalXp) : getRankForXP(0)
@@ -73,15 +85,29 @@ export function PracticePage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Count unresolved review items
+  const unresolvedReviewCount = reviewQueue.filter(r => !r.resolved).length;
+
   // Check if session should end
   const isSessionComplete = useCallback(() => {
+    // Don't end if there are unresolved review items
+    if (unresolvedReviewCount > 0) return false;
+
     if (config.mode === 'questions') {
       return answers.length >= (config.questionCount || 20);
     } else {
       const timeLimitMs = (config.timeLimitMinutes || 5) * 60 * 1000;
       return elapsedTime >= timeLimitMs;
     }
-  }, [config, answers.length, elapsedTime]);
+  }, [config, answers.length, elapsedTime, unresolvedReviewCount]);
+
+  // Check if we've reached the target question count (for display purposes)
+  const hasReachedTarget = useCallback(() => {
+    if (config.mode === 'questions') {
+      return answers.length >= (config.questionCount || 20);
+    }
+    return false;
+  }, [config, answers.length]);
 
   // End session
   useEffect(() => {
@@ -104,7 +130,22 @@ export function PracticePage() {
 
       navigate('/summary');
     }
-  }, [isSessionComplete, isProcessing, answers, totalXp, bestStreak, elapsedTime, config, currentChild, updateChildXp, navigate]);
+  }, [isSessionComplete, isProcessing, answers, totalXp, bestStreak, elapsedTime, config, currentChild, updateChildXp, navigate, startingRank]);
+
+  // Get next question - either from review queue or generate new
+  const getNextQuestion = useCallback((): { question: Question; isReview: boolean } => {
+    // Check if any review items are ready to show
+    const readyReview = reviewQueue.find(
+      r => !r.resolved && r.showAfterQuestion <= answers.length
+    );
+
+    if (readyReview) {
+      return { question: readyReview.question, isReview: true };
+    }
+
+    // Generate a new question
+    return { question: generateQuestion(config, currentChild?.id), isReview: false };
+  }, [reviewQueue, answers.length, config, currentChild?.id]);
 
   // Handle keyboard input
   useEffect(() => {
@@ -180,6 +221,33 @@ export function PracticePage() {
       };
       setAnswers(prev => [...prev, answer]);
 
+      // If this was a review question, mark it as resolved
+      if (isReviewQuestion) {
+        setReviewQueue(prev =>
+          prev.map(r =>
+            r.question.id === currentQuestion.id ? { ...r, resolved: true } : r
+          )
+        );
+      }
+
+      // Check if this correct answer was slow (needs review later)
+      const needsReview = responseTime > TIME_THRESHOLDS.learning; // > 5 seconds
+      if (needsReview && !isReviewQuestion) {
+        // Add to review queue - show again after 2-3 more questions
+        const showAfter = answers.length + 3;
+        setReviewQueue(prev => {
+          // Don't add duplicates
+          if (prev.some(r => r.question.displayString === currentQuestion.displayString && !r.resolved)) {
+            return prev;
+          }
+          return [...prev, {
+            question: { ...currentQuestion, id: `review-${Date.now()}` },
+            showAfterQuestion: showAfter,
+            resolved: false,
+          }];
+        });
+      }
+
       // Update streak
       const newStreak = currentStreak + 1;
       setCurrentStreak(newStreak);
@@ -212,7 +280,9 @@ export function PracticePage() {
       setTimeout(() => {
         setFeedback(null);
         setIsProcessing(false);
-        setCurrentQuestion(generateQuestion(config, currentChild?.id));
+        const next = getNextQuestion();
+        setCurrentQuestion(next.question);
+        setIsReviewQuestion(next.isReview);
         setUserAnswer('');
         setAttempts(0);
         setQuestionStartTime(Date.now());
@@ -222,6 +292,22 @@ export function PracticePage() {
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
       setCurrentStreak(0);
+
+      // Add to review queue if not already a review question (after first wrong attempt)
+      if (!isReviewQuestion && newAttempts === 1) {
+        const showAfter = answers.length + 2; // Show sooner for wrong answers
+        setReviewQueue(prev => {
+          // Don't add duplicates
+          if (prev.some(r => r.question.displayString === currentQuestion.displayString && !r.resolved)) {
+            return prev;
+          }
+          return [...prev, {
+            question: { ...currentQuestion, id: `review-${Date.now()}` },
+            showAfterQuestion: showAfter,
+            resolved: false,
+          }];
+        });
+      }
 
       // Show feedback briefly
       setFeedback({
@@ -306,6 +392,20 @@ export function PracticePage() {
             </div>
           )}
 
+          {/* Review indicator */}
+          {unresolvedReviewCount > 0 && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="flex items-center gap-1 bg-purple-500/20 rounded-xl px-3 py-2"
+            >
+              <RotateCcw className="w-4 h-4 text-purple-400" />
+              <span className="text-purple-400 font-bold">
+                {unresolvedReviewCount}
+              </span>
+            </motion.div>
+          )}
+
           {/* XP */}
           <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2">
             <Zap className="w-4 h-4 text-amber-400" />
@@ -329,8 +429,32 @@ export function PracticePage() {
         </div>
       </header>
 
+      {/* Review mode banner */}
+      {hasReachedTarget() && unresolvedReviewCount > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mx-4 mb-2 bg-purple-500/30 rounded-xl px-4 py-2 text-center"
+        >
+          <span className="text-purple-200 font-medium">
+            📝 Review time! {unresolvedReviewCount} question{unresolvedReviewCount > 1 ? 's' : ''} to go
+          </span>
+        </motion.div>
+      )}
+
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-center p-4">
+        {/* Review badge */}
+        {isReviewQuestion && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-2 bg-purple-500/30 rounded-full px-4 py-1"
+          >
+            <span className="text-purple-200 text-sm font-medium">🔄 Review</span>
+          </motion.div>
+        )}
+
         {/* Question */}
         <div className="mb-8">
           <QuestionCard
