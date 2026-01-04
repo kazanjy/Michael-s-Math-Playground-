@@ -1,6 +1,6 @@
 import { XP_CONFIG, TIME_THRESHOLDS, RANKS } from '../types';
-import type { Question, Rank, QuestionSource } from '../types';
-import { calculateDifficulty } from './questionGenerator';
+import type { Question, Rank, QuestionSource, Difficulty } from '../types';
+import { calculateDifficulty as calculateQuestionDifficulty } from './questionGenerator';
 
 export interface XPResult {
   baseXp: number;
@@ -10,7 +10,7 @@ export interface XPResult {
   totalXp: number;
 }
 
-// Get mastered threshold based on question source
+// Get mastered threshold based on question source (legacy, uses Crazy thresholds)
 function getMasteredThreshold(source: QuestionSource): number {
   return TIME_THRESHOLDS[source].mastered;
 }
@@ -19,7 +19,9 @@ export function calculateXP(
   question: Question,
   correct: boolean,
   responseTimeMs: number,
-  currentStreak: number
+  currentStreak: number,
+  _difficulty?: Difficulty,
+  masteredThresholdOverride?: number
 ): XPResult {
   if (!correct) {
     return {
@@ -33,8 +35,9 @@ export function calculateXP(
 
   const baseXp = XP_CONFIG.baseCorrect;
 
-  // Speed bonus: under mastered threshold (2s for speed, 5s for mental)
-  const masteredThreshold = getMasteredThreshold(question.source);
+  // Speed bonus: under mastered threshold
+  // Use provided threshold if available, otherwise fall back to legacy calculation
+  const masteredThreshold = masteredThresholdOverride ?? getMasteredThreshold(question.source);
   const speedBonus = responseTimeMs < masteredThreshold
     ? XP_CONFIG.speedBonus
     : 0;
@@ -47,9 +50,9 @@ export function calculateXP(
     streakBonus = XP_CONFIG.streak5Bonus;
   }
 
-  // Difficulty bonus
-  const difficulty = calculateDifficulty(question);
-  const difficultyBonus = Math.min(difficulty, XP_CONFIG.maxDifficultyBonus);
+  // Difficulty bonus (based on question complexity, not game difficulty setting)
+  const questionDifficulty = calculateQuestionDifficulty(question);
+  const difficultyBonus = Math.min(questionDifficulty, XP_CONFIG.maxDifficultyBonus);
 
   const totalXp = baseXp + speedBonus + streakBonus + difficultyBonus;
 

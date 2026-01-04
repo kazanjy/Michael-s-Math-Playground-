@@ -96,6 +96,9 @@ export const RANKS: Rank[] = [
 
 // Session configuration
 export interface SessionConfig {
+  // Difficulty level
+  difficulty: Difficulty;
+
   // Question source modes (can enable one or both)
   speedTimesTablesEnabled: boolean;
   generalMentalMathEnabled: boolean;
@@ -203,6 +206,9 @@ export interface Homework {
 // Default session config
 export function createDefaultSessionConfig(): SessionConfig {
   return {
+    // Difficulty
+    difficulty: 'medium',
+
     // Modes
     speedTimesTablesEnabled: true,
     generalMentalMathEnabled: false,
@@ -248,32 +254,118 @@ export function computeOperations(config: SessionConfig): Operation[] {
 // XP calculation constants
 export const XP_CONFIG = {
   baseCorrect: 10,
-  speedBonus: 5,       // Under 2 seconds
+  speedBonus: 5,       // Under mastered threshold
   streak5Bonus: 10,
   streak10Bonus: 25,
   maxDifficultyBonus: 5,
 };
 
-// Response time thresholds (ms)
-export const TIME_THRESHOLDS = {
-  // Speed Times Tables thresholds
-  speed: {
-    mastered: 2000,      // Under 2 seconds = mastered
-    learning: 5000,      // 2-5 seconds = learning
-    // Over 5 seconds = needs work / triggers dogfight
-  },
-  // General Mental Math thresholds (more time allowed for multi-digit)
-  mental: {
-    mastered: 5000,      // Under 5 seconds = mastered
-    learning: 10000,     // 5-10 seconds = learning
-    // Over 10 seconds = needs work / triggers dogfight
-  },
+// Difficulty levels
+export type Difficulty = 'easy' | 'medium' | 'crazy';
+
+export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
+  easy: 'Easy',
+  medium: 'Medium',
+  crazy: 'Crazy',
 };
 
-// Helper to get threshold for a question source
-export function getSlowThreshold(source: QuestionSource): number {
-  return TIME_THRESHOLDS[source].learning;
+// Difficulty multipliers (applied to Crazy base times)
+export const DIFFICULTY_MULTIPLIERS: Record<Difficulty, number> = {
+  crazy: 1.0,
+  medium: 1.5,
+  easy: 2.0,
+};
+
+// Dogfight XP costs by difficulty
+export const DOGFIGHT_XP_COST: Record<Difficulty, number> = {
+  easy: 15,
+  medium: 30,
+  crazy: 45,
+};
+
+// Speed Times Tables base thresholds (Crazy difficulty, in ms)
+const SPEED_BASE_THRESHOLDS = {
+  mastered: 3000,  // Under 3 seconds = mastered (Crazy)
+  slow: 5000,      // Over 5 seconds = slow (Crazy)
+};
+
+// Mental Math base thresholds by digit combo (Crazy difficulty, in ms)
+const MENTAL_BASE_THRESHOLDS: Record<DigitCombo, { mastered: number; slow: number }> = {
+  '1x1': { mastered: 3000, slow: 5000 },
+  '1x2': { mastered: 5000, slow: 10000 },
+  '1x3': { mastered: 8000, slow: 15000 },
+  '2x2': { mastered: 10000, slow: 20000 },
+  '2x3': { mastered: 15000, slow: 30000 },
+  '3x3': { mastered: 25000, slow: 45000 },
+};
+
+// Get Speed Times Tables thresholds for a difficulty
+export function getSpeedThresholds(difficulty: Difficulty): { mastered: number; slow: number } {
+  const mult = DIFFICULTY_MULTIPLIERS[difficulty];
+  return {
+    mastered: Math.round(SPEED_BASE_THRESHOLDS.mastered * mult),
+    slow: Math.round(SPEED_BASE_THRESHOLDS.slow * mult),
+  };
 }
+
+// Get Mental Math thresholds for a digit combo and difficulty
+export function getMentalThresholds(
+  digitCombo: DigitCombo,
+  difficulty: Difficulty
+): { mastered: number; slow: number } {
+  const base = MENTAL_BASE_THRESHOLDS[digitCombo];
+  const mult = DIFFICULTY_MULTIPLIERS[difficulty];
+  return {
+    mastered: Math.round(base.mastered * mult),
+    slow: Math.round(base.slow * mult),
+  };
+}
+
+// Helper to determine digit combo from a question
+export function getDigitComboFromQuestion(question: Question): DigitCombo {
+  const digits1 = String(Math.abs(question.operand1)).length;
+  const digits2 = String(Math.abs(question.operand2)).length;
+  // Normalize to smaller x larger format
+  const [smaller, larger] = [Math.min(digits1, digits2), Math.max(digits1, digits2)];
+  const combo = `${smaller}x${larger}` as DigitCombo;
+  // Clamp to valid combos (max 3x3)
+  if (smaller > 3 || larger > 3) return '3x3';
+  return combo;
+}
+
+// Get thresholds for any question based on source, difficulty, and digit combo
+export function getQuestionThresholds(
+  question: Question,
+  difficulty: Difficulty
+): { mastered: number; slow: number } {
+  if (question.source === 'speed') {
+    return getSpeedThresholds(difficulty);
+  } else {
+    const digitCombo = getDigitComboFromQuestion(question);
+    return getMentalThresholds(digitCombo, difficulty);
+  }
+}
+
+// Helper to get slow threshold (backwards compatible, uses default difficulty)
+export function getSlowThreshold(source: QuestionSource, difficulty: Difficulty = 'medium'): number {
+  if (source === 'speed') {
+    return getSpeedThresholds(difficulty).slow;
+  }
+  // For mental, use 1x1 as default (caller should use getQuestionThresholds for accuracy)
+  return getMentalThresholds('1x1', difficulty).slow;
+}
+
+// Legacy TIME_THRESHOLDS for backwards compatibility (uses Crazy thresholds)
+export const TIME_THRESHOLDS = {
+  speed: {
+    mastered: SPEED_BASE_THRESHOLDS.mastered,
+    learning: SPEED_BASE_THRESHOLDS.slow,
+  },
+  mental: {
+    mastered: MENTAL_BASE_THRESHOLDS['1x1'].mastered,
+    learning: MENTAL_BASE_THRESHOLDS['1x1'].slow,
+  },
+};
 
 // Jet resources (ammunition and countermeasures)
 export interface JetResources {

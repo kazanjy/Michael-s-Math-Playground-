@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import { Play, LogOut, Trophy, Zap, Clock, Hash, History } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
-import { createDefaultSessionConfig, DIGIT_COMBOS, computeOperations } from '../types';
-import type { SessionConfig, Operation, DigitCombo } from '../types';
+import { createDefaultSessionConfig, DIGIT_COMBOS, computeOperations, DIFFICULTY_LABELS } from '../types';
+import type { SessionConfig, Operation, DigitCombo, Difficulty } from '../types';
 import { getXPProgressToNextRank } from '../lib/xpCalculator';
 
 // Mission history type
@@ -448,6 +448,35 @@ export function HomePage() {
           {/* Session Settings */}
           <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700">
             <h3 className="text-white font-bold mb-3">Session Settings</h3>
+
+            {/* Difficulty Selection */}
+            <div className="mb-4">
+              <h4 className="text-slate-300 text-sm font-medium mb-2">Difficulty</h4>
+              <div className="grid grid-cols-3 gap-2">
+                {(['easy', 'medium', 'crazy'] as Difficulty[]).map(diff => (
+                  <button
+                    key={diff}
+                    onClick={() => setConfig(c => ({ ...c, difficulty: diff }))}
+                    className={`p-3 rounded-xl font-bold transition-colors ${
+                      config.difficulty === diff
+                        ? diff === 'easy'
+                          ? 'bg-emerald-600 text-white'
+                          : diff === 'medium'
+                          ? 'bg-amber-600 text-white'
+                          : 'bg-red-600 text-white'
+                        : 'bg-slate-700 text-slate-400'
+                    }`}
+                  >
+                    {diff === 'easy' && '😊 '}
+                    {diff === 'medium' && '💪 '}
+                    {diff === 'crazy' && '🔥 '}
+                    {DIFFICULTY_LABELS[diff]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Mode Selection */}
             <div className="grid grid-cols-2 gap-2 mb-4">
               <button
                 onClick={() => setConfig(c => ({ ...c, mode: 'questions' }))}

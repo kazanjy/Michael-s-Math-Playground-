@@ -7,6 +7,7 @@ interface FeedbackProps {
   correctAnswer?: number;
   xpResult?: XPResult;
   streak?: number;
+  responseTimeMs?: number;
   onContinue?: () => void;
 }
 
@@ -15,6 +16,7 @@ export function Feedback({
   correctAnswer,
   xpResult,
   streak = 0,
+  responseTimeMs,
   onContinue,
 }: FeedbackProps) {
   if (isCorrect === null) return null;
@@ -28,7 +30,7 @@ export function Feedback({
         className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
       >
         {isCorrect ? (
-          <CorrectFeedback xpResult={xpResult} streak={streak} onContinue={onContinue} />
+          <CorrectFeedback xpResult={xpResult} streak={streak} responseTimeMs={responseTimeMs} onContinue={onContinue} />
         ) : (
           <WrongFeedback correctAnswer={correctAnswer} />
         )}
@@ -40,10 +42,12 @@ export function Feedback({
 function CorrectFeedback({
   xpResult,
   streak,
+  responseTimeMs,
   onContinue,
 }: {
   xpResult?: XPResult;
   streak: number;
+  responseTimeMs?: number;
   onContinue?: () => void;
 }) {
   return (
@@ -66,10 +70,22 @@ function CorrectFeedback({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-3xl font-bold text-white mb-4"
+          className="text-3xl font-bold text-white mb-2"
         >
           {getCorrectMessage(streak)}
         </motion.h2>
+
+        {/* Response time display */}
+        {responseTimeMs !== undefined && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.25 }}
+            className="text-lg text-emerald-200 mb-3"
+          >
+            ⏱️ {(responseTimeMs / 1000).toFixed(1)}s
+          </motion.div>
+        )}
 
         {xpResult && xpResult.totalXp > 0 && (
           <motion.div

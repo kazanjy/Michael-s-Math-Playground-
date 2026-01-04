@@ -21,12 +21,13 @@ import {
   createEmptyResourceStats,
 } from '../lib/jetResources';
 import type { SessionConfig, Question, Answer, Rank, JetResources, DogfightResult, SessionResourceStats } from '../types';
-import { getSlowThreshold, createDefaultSessionConfig } from '../types';
+import { getQuestionThresholds, createDefaultSessionConfig } from '../types';
 
 type FeedbackState = {
   isCorrect: boolean;
   correctAnswer: number;
   xpResult: XPResult;
+  responseTimeMs?: number;
 } | null;
 
 // Review queue item - questions that need to be reviewed
@@ -238,13 +239,21 @@ export function PracticePage() {
     }
 
     if (isCorrect) {
-      // Calculate XP
-      const xpResult = calculateXP(
-        currentQuestion,
-        true,
-        responseTime,
-        currentStreak + 1
-      );
+      // Get thresholds for this question based on difficulty
+      const thresholds = getQuestionThresholds(currentQuestion, config.difficulty);
+      const isSlow = responseTime > thresholds.slow;
+
+      // Calculate XP - slow answers get 0 XP
+      const xpResult = isSlow
+        ? { baseXp: 0, speedBonus: 0, streakBonus: 0, difficultyBonus: 0, totalXp: 0 }
+        : calculateXP(
+            currentQuestion,
+            true,
+            responseTime,
+            currentStreak + 1,
+            config.difficulty,
+            thresholds.mastered
+          );
 
       // Record answer
       const answer: Answer = {
@@ -268,9 +277,7 @@ export function PracticePage() {
 
       // Check if this correct answer was slow (needs review later)
       // Only add if: slow, not already a review, AND no wrong attempts (wrong attempts already added it)
-      const slowThreshold = getSlowThreshold(currentQuestion.source);
-      const needsReview = responseTime > slowThreshold; // > 5s for speed, > 10s for mental
-      if (needsReview && !isReviewQuestion && attempts === 0) {
+      if (isSlow && !isReviewQuestion && attempts === 0) {
         // Add to review queue - show again after 2-3 more questions
         const showAfter = answers.length + 3;
         setReviewQueue(prev => {
@@ -286,8 +293,8 @@ export function PracticePage() {
         });
       }
 
-      // Update streak
-      const newStreak = currentStreak + 1;
+      // Update streak - slow answers break the streak
+      const newStreak = isSlow ? 0 : currentStreak + 1;
       setCurrentStreak(newStreak);
       if (newStreak > bestStreak) {
         setBestStreak(newStreak);
@@ -323,11 +330,12 @@ export function PracticePage() {
         setLevelUpInfo({ oldRank, newRank });
       }
 
-      // Show feedback
+      // Show feedback with response time
       setFeedback({
         isCorrect: true,
         correctAnswer: currentQuestion.correctAnswer,
         xpResult,
+        responseTimeMs: responseTime,
       });
       setIsProcessing(true);
 
@@ -335,9 +343,8 @@ export function PracticePage() {
       // Calculate new answers length now (before setTimeout) to avoid stale closure
       const newAnswersLength = answers.length + 1;
 
-      // Trigger dogfight if answer was slow (> threshold based on question type)
-      const wasSlowAnswer = responseTime > slowThreshold;
-      if (wasSlowAnswer) {
+      // Trigger dogfight if answer was slow
+      if (isSlow) {
         // Store the action to run when user dismisses dogfight
         dogfightCompleteAction.current = () => {
           setIsProcessing(false);
@@ -354,7 +361,7 @@ export function PracticePage() {
           setFeedback(null);
           // Trigger dogfight for slow answer (pass responseTime for display)
           setJetResources(currentResources => {
-            const { updatedResources, result } = processDogfight(currentResources, 'slow_answer', responseTime);
+            const { updatedResources, result } = processDogfight(currentResources, 'slow_answer', responseTime, config.difficulty);
             setDogfightResult(result);
 
             // Update resource stats
@@ -428,7 +435,7 @@ export function PracticePage() {
           setFeedback(null);
           // Trigger dogfight for wrong answer
           setJetResources(currentResources => {
-            const { updatedResources, result } = processDogfight(currentResources, 'wrong_answer');
+            const { updatedResources, result } = processDogfight(currentResources, 'wrong_answer', undefined, config.difficulty);
             setDogfightResult(result);
 
             // Update resource stats
@@ -627,6 +634,7 @@ export function PracticePage() {
             correctAnswer={!feedback.isCorrect ? feedback.correctAnswer : undefined}
             xpResult={feedback.isCorrect ? feedback.xpResult : undefined}
             streak={currentStreak}
+            responseTimeMs={feedback.isCorrect ? feedback.responseTimeMs : undefined}
           />
         )}
       </AnimatePresence>

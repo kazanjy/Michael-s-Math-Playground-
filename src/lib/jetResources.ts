@@ -1,5 +1,5 @@
-import type { JetResources, DogfightResult, SessionResourceStats, DogfightTrigger } from '../types';
-import { RESOURCE_CONFIG } from '../types';
+import type { JetResources, DogfightResult, SessionResourceStats, DogfightTrigger, Difficulty } from '../types';
+import { RESOURCE_CONFIG, DOGFIGHT_XP_COST } from '../types';
 
 // Local storage key for jet resources
 const JET_RESOURCES_KEY = 'math_playground_jet_resources';
@@ -64,14 +64,17 @@ export function calculateResourcesEarned(
 
 // Process a dogfight encounter
 // Uses missile OR bullets (prefers missile), and flare OR chaff (prefers flare)
+// Dogfights always cost XP based on difficulty, plus additional XP if missing resources
 export function processDogfight(
   resources: JetResources,
   trigger: DogfightTrigger,
-  responseTimeMs?: number
+  responseTimeMs?: number,
+  difficulty: Difficulty = 'medium'
 ): { updatedResources: JetResources; result: DogfightResult } {
   const enemyType = ENEMY_JETS[Math.floor(Math.random() * ENEMY_JETS.length)];
 
-  let xpLost = 0;
+  // Base XP cost for dogfight (always applied)
+  let xpLost = DOGFIGHT_XP_COST[difficulty];
   let missilesUsed = 0;
   let bulletsUsed = 0;
   let flaresUsed = 0;
@@ -87,7 +90,7 @@ export function processDogfight(
     bulletsUsed = RESOURCE_CONFIG.bulletsPerFight;
     updatedResources.bullets -= bulletsUsed;
   } else {
-    // No offensive weapons - lose XP
+    // No offensive weapons - lose additional XP
     xpLost += RESOURCE_CONFIG.xpLossNoWeapon;
   }
 
@@ -99,12 +102,14 @@ export function processDogfight(
     chaffUsed = RESOURCE_CONFIG.chaffPerFight;
     updatedResources.chaff -= chaffUsed;
   } else {
-    // No countermeasures - lose XP
+    // No countermeasures - lose additional XP
     xpLost += RESOURCE_CONFIG.xpLossNoCountermeasure;
   }
 
-  // Victory if we had resources needed
-  const victory = xpLost === 0;
+  // Victory if we had all needed resources (only extra XP loss is from difficulty)
+  const hasWeapon = missilesUsed > 0 || bulletsUsed > 0;
+  const hasCountermeasure = flaresUsed > 0 || chaffUsed > 0;
+  const victory = hasWeapon && hasCountermeasure;
 
   return {
     updatedResources,
