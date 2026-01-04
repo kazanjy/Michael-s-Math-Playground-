@@ -38,7 +38,7 @@ export function LoginPage() {
             key={i}
             className="absolute text-4xl opacity-20"
             initial={{ x: -100, y: 100 + i * 150 }}
-            animate={{ x: window.innerWidth + 100 }}
+            animate={{ x: '100vw' }}
             transition={{
               duration: 15 + i * 5,
               repeat: Infinity,
