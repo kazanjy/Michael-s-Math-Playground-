@@ -428,6 +428,7 @@ export function PracticePage() {
         dogfightCompleteAction.current = () => {
           setIsProcessing(false);
           setUserAnswer('');
+          setQuestionStartTime(Date.now()); // Reset timer for retry
         };
 
         // Show feedback, then dogfight
@@ -459,6 +460,7 @@ export function PracticePage() {
           setFeedback(null);
           setIsProcessing(false);
           setUserAnswer('');
+          setQuestionStartTime(Date.now()); // Reset timer for retry
         }, 2000);
       }
     }
