@@ -20,7 +20,8 @@ export function DogfightOverlay({ result, onComplete }: DogfightOverlayProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+        onClick={onComplete}
+        className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 cursor-pointer"
       >
         <motion.div
           initial={{ scale: 0, rotate: -180 }}
@@ -224,15 +225,14 @@ export function DogfightOverlay({ result, onComplete }: DogfightOverlayProps) {
                 </div>
               )}
             </div>
-            <motion.button
+            <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.2 }}
-              onClick={onComplete}
-              className="w-full py-3 bg-white/20 hover:bg-white/30 active:bg-white/40 rounded-xl text-white font-bold text-lg transition-colors"
+              animate={{ opacity: [0, 1, 0.5, 1] }}
+              transition={{ delay: 1.2, duration: 2, repeat: Infinity }}
+              className="text-center text-white/60 text-sm"
             >
-              Continue
-            </motion.button>
+              Tap anywhere to continue
+            </motion.div>
           </motion.div>
         </motion.div>
       </motion.div>

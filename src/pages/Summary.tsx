@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Home, RotateCcw, Trophy, Target, Clock, Zap, TrendingUp, Plane } from 'lucide-react';
@@ -8,6 +8,7 @@ import { ResourceDisplay } from '../components/combat/ResourceDisplay';
 import { useAuth } from '../contexts/AuthContext';
 import { getXPProgressToNextRank, getRankForXP } from '../lib/xpCalculator';
 import { getResourceIcon } from '../lib/jetResources';
+import { saveMissionToHistory } from './Home';
 import type { Answer, SessionConfig, Rank, SessionResourceStats, JetResources } from '../types';
 
 interface SessionResult {
@@ -29,12 +30,28 @@ export function SummaryPage() {
   const [result, setResult] = useState<SessionResult | null>(null);
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [levelUpInfo, setLevelUpInfo] = useState<{ oldRank: Rank; newRank: Rank } | null>(null);
+  const savedToHistory = useRef(false);
 
   useEffect(() => {
     const stored = sessionStorage.getItem('sessionResult');
     if (stored) {
       const parsedResult = JSON.parse(stored) as SessionResult;
       setResult(parsedResult);
+
+      // Save mission to history (only once)
+      if (!savedToHistory.current && parsedResult.answers.length > 0) {
+        savedToHistory.current = true;
+        const correctAnswers = parsedResult.answers.filter(a => a.isCorrect).length;
+        const totalTime = parsedResult.answers.reduce((sum, a) => sum + a.responseTimeMs, 0);
+        saveMissionToHistory({
+          config: parsedResult.config,
+          totalQuestions: parsedResult.answers.length,
+          correctAnswers,
+          wrongAnswers: parsedResult.answers.length - correctAnswers,
+          avgTimePerQuestion: parsedResult.answers.length > 0 ? totalTime / parsedResult.answers.length : 0,
+          totalXp: parsedResult.totalXp,
+        });
+      }
 
       // Check for level up
       if (parsedResult.startingRank && currentChild) {
@@ -101,7 +118,7 @@ export function SummaryPage() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="text-center mb-6"
         >
           <motion.div
             initial={{ scale: 0 }}
@@ -116,6 +133,34 @@ export function SummaryPage() {
              accuracy >= 70 ? 'Great Flying!' :
              accuracy >= 50 ? 'Good Effort!' : 'Keep Practicing!'}
           </h1>
+        </motion.div>
+
+        {/* Action buttons - at top for easy access */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="flex gap-3 mb-6"
+        >
+          <Button
+            size="lg"
+            className="flex-1"
+            onClick={() => {
+              // Restart with same config
+              navigate('/practice');
+            }}
+          >
+            <RotateCcw className="w-5 h-5 mr-2" /> Play Again
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="lg"
+            className="flex-1"
+            onClick={() => navigate('/')}
+          >
+            <Home className="w-5 h-5 mr-2" /> Home
+          </Button>
         </motion.div>
 
         {/* Stats grid */}
@@ -362,34 +407,6 @@ export function SummaryPage() {
             <div className="text-white font-bold">{mostMissed}</div>
           </motion.div>
         )}
-
-        {/* Action buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.85 }}
-          className="space-y-3"
-        >
-          <Button
-            size="lg"
-            className="w-full"
-            onClick={() => {
-              // Restart with same config
-              navigate('/practice');
-            }}
-          >
-            <RotateCcw className="w-5 h-5 mr-2" /> Play Again
-          </Button>
-
-          <Button
-            variant="secondary"
-            size="lg"
-            className="w-full"
-            onClick={() => navigate('/')}
-          >
-            <Home className="w-5 h-5 mr-2" /> Back to Base
-          </Button>
-        </motion.div>
       </div>
 
       {/* Level up celebration */}

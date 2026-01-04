@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Rank } from '../../types';
 
@@ -16,16 +16,6 @@ export function LevelUpCelebration({
   variant = 'full',
 }: LevelUpCelebrationProps) {
   const [isVisible, setIsVisible] = useState(true);
-
-  useEffect(() => {
-    // Auto-dismiss after 5 seconds
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      setTimeout(onDismiss, 500); // Wait for exit animation
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [onDismiss]);
 
   const handleDismiss = () => {
     setIsVisible(false);

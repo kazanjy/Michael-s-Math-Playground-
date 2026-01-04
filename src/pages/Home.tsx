@@ -1,20 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, Settings, LogOut, Trophy, Zap, Target, Clock, Hash } from 'lucide-react';
+import { Play, Settings, LogOut, Trophy, Zap, Target, Clock, Hash, History } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { SESSION_PRESETS } from '../types';
 import type { SessionConfig, Operation } from '../types';
 import { getXPProgressToNextRank } from '../lib/xpCalculator';
 
-export function HomePage() {
-  const navigate = useNavigate();
-  const { currentChild, signOut } = useAuth();
-  const [showConfig, setShowConfig] = useState(false);
+// Mission history type
+export interface MissionHistory {
+  id: string;
+  timestamp: number;
+  config: SessionConfig;
+  totalQuestions: number;
+  correctAnswers: number;
+  wrongAnswers: number;
+  avgTimePerQuestion: number; // ms
+  totalXp: number;
+}
 
-  // Session configuration state
-  const [config, setConfig] = useState<SessionConfig>({
+const CUSTOM_CONFIG_KEY = 'math_playground_custom_config';
+const MISSION_HISTORY_KEY = 'math_playground_mission_history';
+
+// Load last custom config from localStorage
+function loadCustomConfig(): SessionConfig {
+  const stored = localStorage.getItem(CUSTOM_CONFIG_KEY);
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {
+      // Invalid JSON, return default
+    }
+  }
+  return {
     operations: ['multiply'],
     primaryNumbers: [2, 3, 4, 5],
     multiplierRanges: [{ min: 1, max: 10 }],
@@ -22,15 +41,88 @@ export function HomePage() {
     addend2Digits: 1,
     mode: 'questions',
     questionCount: 20,
-  });
+  };
+}
+
+// Save custom config to localStorage
+function saveCustomConfig(config: SessionConfig): void {
+  localStorage.setItem(CUSTOM_CONFIG_KEY, JSON.stringify(config));
+}
+
+// Load mission history
+export function loadMissionHistory(): MissionHistory[] {
+  const stored = localStorage.getItem(MISSION_HISTORY_KEY);
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+// Save mission to history
+export function saveMissionToHistory(mission: Omit<MissionHistory, 'id' | 'timestamp'>): void {
+  const history = loadMissionHistory();
+  const newMission: MissionHistory = {
+    ...mission,
+    id: `mission_${Date.now()}`,
+    timestamp: Date.now(),
+  };
+  // Add to beginning, keep only last 20
+  history.unshift(newMission);
+  if (history.length > 20) {
+    history.length = 20;
+  }
+  localStorage.setItem(MISSION_HISTORY_KEY, JSON.stringify(history));
+}
+
+// Format time ago
+function formatTimeAgo(timestamp: number): string {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  return `${weeks}w ago`;
+}
+
+export function HomePage() {
+  const navigate = useNavigate();
+  const { currentChild, signOut } = useAuth();
+  const [showConfig, setShowConfig] = useState(false);
+  const [missionHistory, setMissionHistory] = useState<MissionHistory[]>([]);
+
+  // Session configuration state - load from localStorage
+  const [config, setConfig] = useState<SessionConfig>(loadCustomConfig);
+
+  // Load mission history on mount
+  useEffect(() => {
+    setMissionHistory(loadMissionHistory());
+  }, []);
 
   const xpProgress = currentChild
     ? getXPProgressToNextRank(currentChild.totalXp)
     : null;
 
-  const startSession = () => {
+  const startSession = (customConfig?: SessionConfig) => {
+    const sessionConfig = customConfig || config;
+    // Save custom config for next time
+    if (!customConfig) {
+      saveCustomConfig(config);
+    }
     // Store config in sessionStorage and navigate
-    sessionStorage.setItem('sessionConfig', JSON.stringify(config));
+    sessionStorage.setItem('sessionConfig', JSON.stringify(sessionConfig));
+    navigate('/practice');
+  };
+
+  const startFromHistory = (mission: MissionHistory) => {
+    sessionStorage.setItem('sessionConfig', JSON.stringify(mission.config));
     navigate('/practice');
   };
 
@@ -187,6 +279,87 @@ export function HomePage() {
                 <Settings className="w-8 h-8 text-slate-400" />
               </div>
             </motion.button>
+
+            {/* Recent Missions */}
+            {missionHistory.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="mt-8"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <History className="w-5 h-5 text-slate-400" />
+                  <h3 className="text-lg font-bold text-white">Recent Missions</h3>
+                </div>
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {missionHistory.map((mission, i) => (
+                    <motion.button
+                      key={mission.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 + i * 0.05 }}
+                      onClick={() => startFromHistory(mission)}
+                      className="w-full p-3 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 text-left transition-colors border border-slate-700"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          {/* Operation icons */}
+                          <span className="text-sm">
+                            {mission.config.operations.map(op => {
+                              if (op === 'multiply') return '×';
+                              if (op === 'divide') return '÷';
+                              if (op === 'add') return '+';
+                              if (op === 'subtract') return '−';
+                              return '';
+                            }).join(' ')}
+                          </span>
+                          {/* Tables */}
+                          {(mission.config.operations.includes('multiply') || mission.config.operations.includes('divide')) && (
+                            <span className="text-xs text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded">
+                              {mission.config.primaryNumbers.length <= 3
+                                ? mission.config.primaryNumbers.join(', ')
+                                : `${mission.config.primaryNumbers.slice(0, 2).join(', ')}... (${mission.config.primaryNumbers.length})`
+                              }
+                            </span>
+                          )}
+                          {/* Multiplier range */}
+                          {mission.config.multiplierRanges && mission.config.multiplierRanges.length > 0 && (
+                            <span className="text-xs text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded">
+                              ×{mission.config.multiplierRanges[0].min}-{mission.config.multiplierRanges[mission.config.multiplierRanges.length - 1].max}
+                            </span>
+                          )}
+                        </div>
+                        <Play className="w-4 h-4 text-slate-500" />
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-slate-400">
+                        {/* Session type */}
+                        <span>
+                          {mission.config.mode === 'questions'
+                            ? `${mission.config.questionCount} Q`
+                            : `${mission.config.timeLimitMinutes}m`
+                          }
+                        </span>
+                        {/* Results */}
+                        <span className="text-emerald-400">
+                          {mission.correctAnswers}/{mission.totalQuestions} ✓
+                        </span>
+                        <span className="text-red-400">
+                          {mission.wrongAnswers} ✗
+                        </span>
+                        <span>
+                          {(mission.avgTimePerQuestion / 1000).toFixed(1)}s avg
+                        </span>
+                        {/* Time ago */}
+                        <span className="ml-auto text-slate-500">
+                          {formatTimeAgo(mission.timestamp)}
+                        </span>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         ) : (
           // Configuration view
