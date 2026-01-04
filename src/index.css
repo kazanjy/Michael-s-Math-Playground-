@@ -37,3 +37,69 @@ input[type="checkbox"]:not(:disabled),
 input[type="radio"]:not(:disabled) {
   cursor: pointer;
 }
+
+/* Instant CSS tooltips using data-tip attribute */
+[data-tip] {
+  position: relative;
+}
+
+[data-tip]::before,
+[data-tip]::after {
+  position: absolute;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 9999;
+}
+
+/* Tooltip bubble */
+[data-tip]::after {
+  content: attr(data-tip);
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  background: #0f172a;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  border-radius: 8px;
+  white-space: normal;
+  max-width: 250px;
+  width: max-content;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid #334155;
+}
+
+/* Arrow */
+[data-tip]::before {
+  content: '';
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #0f172a;
+}
+
+/* Show on hover */
+[data-tip]:hover::before,
+[data-tip]:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Bottom position variant */
+[data-tip-pos="bottom"]::after {
+  bottom: auto;
+  top: calc(100% + 8px);
+}
+
+[data-tip-pos="bottom"]::before {
+  bottom: auto;
+  top: calc(100% + 2px);
+  border-top-color: transparent;
+  border-bottom-color: #0f172a;
+}

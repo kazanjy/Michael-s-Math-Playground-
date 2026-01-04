@@ -10,6 +10,7 @@ interface ButtonProps {
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
   title?: string;
+  'data-tip'?: string;
 }
 
 const variants = {
@@ -36,6 +37,7 @@ export function Button({
   onClick,
   type = 'button',
   title,
+  'data-tip': dataTip,
 }: ButtonProps) {
   return (
     <motion.button
@@ -52,6 +54,7 @@ export function Button({
       onClick={onClick}
       type={type}
       title={title}
+      data-tip={dataTip}
     >
       {children}
     </motion.button>

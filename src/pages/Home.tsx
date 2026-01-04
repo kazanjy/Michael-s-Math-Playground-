@@ -279,7 +279,7 @@ export function HomePage() {
               <button
                 key={diff}
                 onClick={() => setConfig(c => ({ ...c, difficulty: diff }))}
-                title={
+                data-tip={
                   diff === 'easy'
                     ? 'Easy: More time to answer (2x). Dogfights cost 15 XP.'
                     : diff === 'medium'
@@ -306,13 +306,13 @@ export function HomePage() {
 
           {/* Speed Times Tables Section */}
           <div className={`bg-slate-800/50 rounded-2xl border overflow-hidden ${config.speedTimesTablesEnabled ? 'border-blue-500/50' : 'border-slate-700'}`}>
-            <div className="p-4 flex items-center gap-3" title="Memorize multiplication and division facts with spaced repetition">
+            <div className="p-4 flex items-center gap-3" data-tip="Memorize multiplication and division facts with spaced repetition">
               <input
                 type="checkbox"
                 checked={config.speedTimesTablesEnabled}
                 onChange={() => setConfig(c => ({ ...c, speedTimesTablesEnabled: !c.speedTimesTablesEnabled }))}
                 className="w-5 h-5 rounded accent-blue-500"
-                title="Enable Speed Times Tables practice"
+                data-tip="Enable Speed Times Tables practice"
               />
               <div>
                 <h3 className="text-white font-bold text-lg">Speed Times Tables</h3>
@@ -330,7 +330,7 @@ export function HomePage() {
                       key={op}
                       onClick={() => toggleSpeedOperation(op)}
                       disabled={!config.speedTimesTablesEnabled}
-                      title={op === 'multiply' ? 'Practice multiplication (e.g., 7 × 8 = ?)' : 'Practice division (e.g., 56 ÷ 7 = ?)'}
+                      data-tip={op === 'multiply' ? 'Practice multiplication (e.g., 7 × 8 = ?)' : 'Practice division (e.g., 56 ÷ 7 = ?)'}
                       className={`flex-1 p-2 rounded-lg font-medium transition-colors ${
                         config.speedOperations.includes(op)
                           ? 'bg-blue-600 text-white'
@@ -352,7 +352,7 @@ export function HomePage() {
                       key={num}
                       onClick={() => togglePrimaryNumber(num)}
                       disabled={!config.speedTimesTablesEnabled}
-                      title={`Practice the ${num} times table (${num}×1, ${num}×2, ...)`}
+                      data-tip={`Practice the ${num} times table (${num}×1, ${num}×2, ...)`}
                       className={`p-2 rounded-lg font-bold transition-colors ${
                         config.primaryNumbers.includes(num)
                           ? 'bg-amber-500 text-white'
@@ -382,7 +382,7 @@ export function HomePage() {
                       <button
                         key={range.label}
                         disabled={!config.speedTimesTablesEnabled}
-                        title={range.desc}
+                        data-tip={range.desc}
                         onClick={() => {
                           setConfig(c => {
                             const existing = c.multiplierRanges.find(
@@ -420,13 +420,13 @@ export function HomePage() {
 
           {/* General Mental Math Section */}
           <div className={`bg-slate-800/50 rounded-2xl border overflow-hidden ${config.generalMentalMathEnabled ? 'border-purple-500/50' : 'border-slate-700'}`}>
-            <div className="p-4 flex items-center gap-3" title="Practice mental math techniques with multi-digit numbers">
+            <div className="p-4 flex items-center gap-3" data-tip="Practice mental math techniques with multi-digit numbers">
               <input
                 type="checkbox"
                 checked={config.generalMentalMathEnabled}
                 onChange={() => setConfig(c => ({ ...c, generalMentalMathEnabled: !c.generalMentalMathEnabled }))}
                 className="w-5 h-5 rounded accent-purple-500"
-                title="Enable General Mental Math practice"
+                data-tip="Enable General Mental Math practice"
               />
               <div>
                 <h3 className="text-white font-bold text-lg">General Mental Math</h3>
@@ -456,11 +456,11 @@ export function HomePage() {
                         onChange={() => toggleMentalMathOperation(op)}
                         disabled={!config.generalMentalMathEnabled}
                         className="w-4 h-4 rounded accent-purple-500"
-                        title={opDesc}
+                        data-tip={opDesc}
                       />
                       <span
                         className={`font-medium ${isEnabled && config.generalMentalMathEnabled ? 'text-white' : 'text-slate-500'}`}
-                        title={opDesc}
+                        data-tip={opDesc}
                       >
                         {op === 'multiply' && '× Multiplication'}
                         {op === 'divide' && '÷ Division'}
@@ -480,7 +480,7 @@ export function HomePage() {
                             key={combo}
                             onClick={() => toggleDigitCombo(op, combo)}
                             disabled={!config.generalMentalMathEnabled || !isEnabled}
-                            title={comboDesc}
+                            data-tip={comboDesc}
                             className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                               combos.includes(combo)
                                 ? 'bg-purple-600 text-white'
@@ -506,7 +506,7 @@ export function HomePage() {
             <div className="grid grid-cols-2 gap-2 mb-4">
               <button
                 onClick={() => setConfig(c => ({ ...c, mode: 'questions' }))}
-                title="Practice a fixed number of questions"
+                data-tip="Practice a fixed number of questions"
                 className={`p-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
                   config.mode === 'questions'
                     ? 'bg-blue-600 text-white'
@@ -517,7 +517,7 @@ export function HomePage() {
               </button>
               <button
                 onClick={() => setConfig(c => ({ ...c, mode: 'time' }))}
-                title="Practice for a set amount of time"
+                data-tip="Practice for a set amount of time"
                 className={`p-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
                   config.mode === 'time'
                     ? 'bg-blue-600 text-white'
@@ -534,7 +534,7 @@ export function HomePage() {
                   <button
                     key={count}
                     onClick={() => setConfig(c => ({ ...c, questionCount: count }))}
-                    title={`Complete ${count} questions in this session`}
+                    data-tip={`Complete ${count} questions in this session`}
                     className={`p-2 rounded-lg font-medium transition-colors ${
                       config.questionCount === count
                         ? 'bg-amber-500 text-white'
@@ -551,7 +551,7 @@ export function HomePage() {
               <select
                 value={config.timeLimitMinutes || 5}
                 onChange={(e) => setConfig(c => ({ ...c, timeLimitMinutes: parseInt(e.target.value) }))}
-                title="Choose how long to practice"
+                data-tip="Choose how long to practice"
                 className="w-full p-3 rounded-xl bg-slate-700 text-white font-medium border border-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
               >
                 {[1, 2, 3, 5, 10, 15, 20, 30].map(mins => (
@@ -569,7 +569,7 @@ export function HomePage() {
             className="w-full"
             onClick={startSession}
             disabled={!canStart}
-            title="Begin your math practice mission with the selected settings"
+            data-tip="Begin your math practice mission with the selected settings"
           >
             <Play className="w-6 h-6 mr-2" /> Start Mission
           </Button>

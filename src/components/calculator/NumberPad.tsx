@@ -109,7 +109,7 @@ export function NumberPad({
             transition-colors duration-150
             select-none touch-manipulation
           `}
-          title="Tap to delete, double-tap to clear"
+          data-tip="Tap to delete, double-tap to clear"
         >
           <Delete size={32} />
         </motion.button>
@@ -120,7 +120,7 @@ export function NumberPad({
           whileTap={{ scale: disabled ? 1 : 0.95 }}
           onClick={onSubmit}
           disabled={disabled || value === ''}
-          title="Submit your answer (or press Enter)"
+          data-tip="Submit your answer (or press Enter)"
           className={`
             w-20 h-20 sm:w-24 sm:h-24
             rounded-2xl
