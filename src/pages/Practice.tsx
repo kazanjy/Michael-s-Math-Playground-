@@ -9,6 +9,7 @@ import { LevelUpCelebration } from '../components/celebration/LevelUpCelebration
 import { useAuth } from '../contexts/AuthContext';
 import { generateQuestion } from '../lib/questionGenerator';
 import { calculateXP, getRankForXP, type XPResult } from '../lib/xpCalculator';
+import { recordFactAttempt } from '../lib/factMastery';
 import type { SessionConfig, Question, Answer, Rank } from '../types';
 
 type FeedbackState = {
@@ -39,8 +40,10 @@ export function PracticePage() {
     };
   });
 
-  // Session state
-  const [currentQuestion, setCurrentQuestion] = useState<Question>(() => generateQuestion(config));
+  // Session state - use spaced repetition if we have a child profile
+  const [currentQuestion, setCurrentQuestion] = useState<Question>(() =>
+    generateQuestion(config, currentChild?.id)
+  );
   const [userAnswer, setUserAnswer] = useState('');
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [currentStreak, setCurrentStreak] = useState(0);
@@ -132,6 +135,31 @@ export function PracticePage() {
     const userAnswerNum = parseInt(userAnswer, 10);
     const isCorrect = userAnswerNum === currentQuestion.correctAnswer;
 
+    // Record fact mastery for multiplication and division
+    if (currentChild && (currentQuestion.operation === 'multiply' || currentQuestion.operation === 'divide')) {
+      // For division, we track as "dividend ÷ divisor" but store relative to the underlying multiplication fact
+      if (currentQuestion.operation === 'divide') {
+        // Store as divisor × answer = dividend (the multiplication fact)
+        recordFactAttempt(
+          currentChild.id,
+          'divide',
+          currentQuestion.operand2, // divisor (the primary number)
+          currentQuestion.correctAnswer, // the multiplier (answer)
+          isCorrect,
+          responseTime
+        );
+      } else {
+        recordFactAttempt(
+          currentChild.id,
+          currentQuestion.operation,
+          currentQuestion.operand1,
+          currentQuestion.operand2,
+          isCorrect,
+          responseTime
+        );
+      }
+    }
+
     if (isCorrect) {
       // Calculate XP
       const xpResult = calculateXP(
@@ -184,7 +212,7 @@ export function PracticePage() {
       setTimeout(() => {
         setFeedback(null);
         setIsProcessing(false);
-        setCurrentQuestion(generateQuestion(config));
+        setCurrentQuestion(generateQuestion(config, currentChild?.id));
         setUserAnswer('');
         setAttempts(0);
         setQuestionStartTime(Date.now());
