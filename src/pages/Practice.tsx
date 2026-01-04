@@ -64,6 +64,8 @@ export function PracticePage() {
   // Review queue for facts that need reinforcement
   const [reviewQueue, setReviewQueue] = useState<ReviewItem[]>([]);
   const [isReviewQuestion, setIsReviewQuestion] = useState(false);
+  // Ref to always have the latest review queue (avoids stale closure in setTimeout)
+  const reviewQueueRef = useRef<ReviewItem[]>([]);
 
   // Level up tracking
   const [startingRank] = useState<Rank>(() =>
@@ -84,6 +86,11 @@ export function PracticePage() {
     }, 100);
     return () => clearInterval(interval);
   }, []);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    reviewQueueRef.current = reviewQueue;
+  }, [reviewQueue]);
 
   // Count unresolved review items
   const unresolvedReviewCount = reviewQueue.filter(r => !r.resolved).length;
@@ -133,10 +140,11 @@ export function PracticePage() {
   }, [isSessionComplete, isProcessing, answers, totalXp, bestStreak, elapsedTime, config, currentChild, updateChildXp, navigate, startingRank]);
 
   // Get next question - either from review queue or generate new
-  const getNextQuestion = useCallback((): { question: Question; isReview: boolean } => {
-    // Check if any review items are ready to show
-    const readyReview = reviewQueue.find(
-      r => !r.resolved && r.showAfterQuestion <= answers.length
+  // Uses ref to get latest review queue (avoids stale closure in setTimeout)
+  const getNextQuestion = useCallback((currentAnswersLength: number): { question: Question; isReview: boolean } => {
+    // Check if any review items are ready to show (use ref for latest state)
+    const readyReview = reviewQueueRef.current.find(
+      r => !r.resolved && r.showAfterQuestion <= currentAnswersLength
     );
 
     if (readyReview) {
@@ -145,7 +153,7 @@ export function PracticePage() {
 
     // Generate a new question
     return { question: generateQuestion(config, currentChild?.id), isReview: false };
-  }, [reviewQueue, answers.length, config, currentChild?.id]);
+  }, [config, currentChild?.id]);
 
   // Handle keyboard input
   useEffect(() => {
@@ -278,10 +286,12 @@ export function PracticePage() {
       setIsProcessing(true);
 
       // Move to next question after delay
+      // Calculate new answers length now (before setTimeout) to avoid stale closure
+      const newAnswersLength = answers.length + 1;
       setTimeout(() => {
         setFeedback(null);
         setIsProcessing(false);
-        const next = getNextQuestion();
+        const next = getNextQuestion(newAnswersLength);
         setCurrentQuestion(next.question);
         setIsReviewQuestion(next.isReview);
         setUserAnswer('');
