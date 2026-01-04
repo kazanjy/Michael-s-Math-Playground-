@@ -1,20 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Home, RotateCcw, Trophy, Target, Clock, Zap, TrendingUp } from 'lucide-react';
+import { Home, RotateCcw, Trophy, Target, Clock, Zap, TrendingUp, Plane } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { LevelUpCelebration } from '../components/celebration/LevelUpCelebration';
+import { ResourceDisplay } from '../components/combat/ResourceDisplay';
 import { useAuth } from '../contexts/AuthContext';
 import { getXPProgressToNextRank, getRankForXP } from '../lib/xpCalculator';
-import type { Answer, SessionConfig, Rank } from '../types';
+import { getResourceIcon } from '../lib/jetResources';
+import type { Answer, SessionConfig, Rank, SessionResourceStats, JetResources } from '../types';
 
 interface SessionResult {
   answers: Answer[];
   totalXp: number;
+  xpEarnedBeforeLosses?: number;
+  xpLostToDogfights?: number;
   bestStreak: number;
   elapsedTime: number;
   config: SessionConfig;
   startingRank?: Rank;
+  resourceStats?: SessionResourceStats;
+  finalResources?: JetResources;
 }
 
 export function SummaryPage() {
@@ -169,6 +175,11 @@ export function SummaryPage() {
             >
               +{totalXp}
             </motion.div>
+            {result.xpLostToDogfights && result.xpLostToDogfights > 0 && (
+              <div className="mt-2 text-red-400 text-sm">
+                ({result.xpEarnedBeforeLosses} earned - {result.xpLostToDogfights} lost in combat)
+              </div>
+            )}
           </div>
 
           {/* Best streak */}
@@ -190,12 +201,123 @@ export function SummaryPage() {
           )}
         </motion.div>
 
+        {/* Combat Report */}
+        {result.resourceStats && (result.resourceStats.dogfightsWon > 0 || result.resourceStats.dogfightsLost > 0) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55 }}
+            className="bg-gradient-to-r from-slate-700/50 to-slate-800/50 rounded-2xl p-4 mb-6 border border-slate-600/50"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <Plane className="w-5 h-5 text-sky-400" />
+              <span className="text-white font-bold">Combat Report</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="bg-emerald-500/20 rounded-lg p-3 text-center border border-emerald-500/30">
+                <div className="text-2xl font-bold text-emerald-400">
+                  {result.resourceStats.dogfightsWon}
+                </div>
+                <div className="text-xs text-emerald-300">Victories</div>
+              </div>
+              <div className="bg-red-500/20 rounded-lg p-3 text-center border border-red-500/30">
+                <div className="text-2xl font-bold text-red-400">
+                  {result.resourceStats.dogfightsLost}
+                </div>
+                <div className="text-xs text-red-300">Defeats</div>
+              </div>
+            </div>
+
+            {/* Resources used in combat */}
+            <div className="text-slate-400 text-sm mb-2">Resources Used:</div>
+            <div className="flex justify-around text-sm">
+              <div className="text-center">
+                <span>{getResourceIcon('missiles')}</span>
+                <span className="text-red-400 ml-1">-{result.resourceStats.missilesUsed}</span>
+              </div>
+              <div className="text-center">
+                <span>{getResourceIcon('bullets')}</span>
+                <span className="text-amber-400 ml-1">-{result.resourceStats.bulletsUsed}</span>
+              </div>
+              <div className="text-center">
+                <span>{getResourceIcon('flares')}</span>
+                <span className="text-orange-400 ml-1">-{result.resourceStats.flaresUsed}</span>
+              </div>
+              <div className="text-center">
+                <span>{getResourceIcon('chaff')}</span>
+                <span className="text-cyan-400 ml-1">-{result.resourceStats.chaffUsed}</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Resources Earned */}
+        {result.resourceStats && (
+          result.resourceStats.missilesEarned > 0 ||
+          result.resourceStats.bulletsEarned > 0 ||
+          result.resourceStats.flaresEarned > 0 ||
+          result.resourceStats.chaffEarned > 0
+        ) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-2xl p-4 mb-6 border border-emerald-500/30"
+          >
+            <div className="text-emerald-400 text-sm font-medium mb-3 text-center">
+              SUPPLIES EARNED
+            </div>
+            <div className="flex justify-around">
+              {result.resourceStats.missilesEarned > 0 && (
+                <div className="text-center">
+                  <div className="text-2xl">{getResourceIcon('missiles')}</div>
+                  <div className="text-emerald-400 font-bold">+{result.resourceStats.missilesEarned}</div>
+                </div>
+              )}
+              {result.resourceStats.bulletsEarned > 0 && (
+                <div className="text-center">
+                  <div className="text-2xl">{getResourceIcon('bullets')}</div>
+                  <div className="text-emerald-400 font-bold">+{result.resourceStats.bulletsEarned}</div>
+                </div>
+              )}
+              {result.resourceStats.flaresEarned > 0 && (
+                <div className="text-center">
+                  <div className="text-2xl">{getResourceIcon('flares')}</div>
+                  <div className="text-emerald-400 font-bold">+{result.resourceStats.flaresEarned}</div>
+                </div>
+              )}
+              {result.resourceStats.chaffEarned > 0 && (
+                <div className="text-center">
+                  <div className="text-2xl">{getResourceIcon('chaff')}</div>
+                  <div className="text-emerald-400 font-bold">+{result.resourceStats.chaffEarned}</div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Current Resources */}
+        {result.finalResources && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.65 }}
+            className="bg-slate-800/50 rounded-2xl p-4 mb-6 border border-slate-700"
+          >
+            <div className="text-slate-400 text-sm font-medium mb-3 text-center">
+              YOUR SUPPLIES
+            </div>
+            <ResourceDisplay resources={result.finalResources} />
+          </motion.div>
+        )}
+
         {/* Rank progress */}
         {xpProgress && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.7 }}
             className="bg-slate-800/50 rounded-2xl p-4 mb-6 border border-slate-700"
           >
             <div className="flex items-center justify-between mb-2">
@@ -233,7 +355,7 @@ export function SummaryPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
+            transition={{ delay: 0.75 }}
             className="bg-red-500/10 rounded-2xl p-4 mb-6 border border-red-500/30"
           >
             <div className="text-red-400 text-sm font-medium mb-1">Practice More:</div>
@@ -245,7 +367,7 @@ export function SummaryPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 0.85 }}
           className="space-y-3"
         >
           <Button

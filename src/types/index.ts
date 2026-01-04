@@ -190,3 +190,60 @@ export const TIME_THRESHOLDS = {
   learning: 5000,      // 2-5 seconds = learning
   // Over 5 seconds = needs work
 };
+
+// Jet resources (ammunition and countermeasures)
+export interface JetResources {
+  missiles: number;
+  bullets: number;
+  flares: number;
+  chaff: number;
+}
+
+// Resource earning thresholds (XP needed to earn each resource)
+export const RESOURCE_CONFIG = {
+  // XP thresholds to earn resources
+  xpPerMissile: 50,      // Every 50 XP earns a missile
+  xpPerBulletPack: 25,   // Every 25 XP earns 10 bullets
+  xpPerFlare: 30,        // Every 30 XP earns a flare
+  xpPerChaff: 30,        // Every 30 XP earns a chaff
+  bulletsPerPack: 10,
+  // XP loss when no resources during dogfight
+  xpLossNoMissile: 15,
+  xpLossNoBullets: 10,
+  xpLossNoFlare: 8,
+  xpLossNoChaff: 8,
+  // Resource usage per dogfight
+  missilesPerFight: 1,
+  bulletsPerFight: 5,
+  flaresPerFight: 1,
+  chaffPerFight: 1,
+  // Dogfight frequency (every N correct answers)
+  dogfightFrequency: 5,
+};
+
+// Dogfight result
+export interface DogfightResult {
+  occurred: boolean;
+  enemyType: string;
+  missilesUsed: number;
+  bulletsUsed: number;
+  flaresUsed: number;
+  chaffUsed: number;
+  xpLost: number;
+  victory: boolean;
+}
+
+// Session resource tracking
+export interface SessionResourceStats {
+  missilesEarned: number;
+  bulletsEarned: number;
+  flaresEarned: number;
+  chaffEarned: number;
+  missilesUsed: number;
+  bulletsUsed: number;
+  flaresUsed: number;
+  chaffUsed: number;
+  xpLostToDogfights: number;
+  dogfightsWon: number;
+  dogfightsLost: number;
+}

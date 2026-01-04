@@ -6,11 +6,22 @@ import { NumberPad } from '../components/calculator/NumberPad';
 import { QuestionCard } from '../components/question/QuestionCard';
 import { Feedback } from '../components/question/Feedback';
 import { LevelUpCelebration } from '../components/celebration/LevelUpCelebration';
+import { DogfightOverlay } from '../components/combat/DogfightOverlay';
+import { ResourceDisplay } from '../components/combat/ResourceDisplay';
 import { useAuth } from '../contexts/AuthContext';
 import { generateQuestion } from '../lib/questionGenerator';
 import { calculateXP, getRankForXP, type XPResult } from '../lib/xpCalculator';
 import { recordFactAttempt } from '../lib/factMastery';
-import type { SessionConfig, Question, Answer, Rank } from '../types';
+import {
+  getJetResources,
+  saveJetResources,
+  calculateResourcesEarned,
+  processDogfight,
+  shouldTriggerDogfight,
+  addResources,
+  createEmptyResourceStats,
+} from '../lib/jetResources';
+import type { SessionConfig, Question, Answer, Rank, JetResources, DogfightResult, SessionResourceStats } from '../types';
 import { TIME_THRESHOLDS } from '../types';
 
 type FeedbackState = {
@@ -74,6 +85,15 @@ export function PracticePage() {
   const [levelUpInfo, setLevelUpInfo] = useState<{ oldRank: Rank; newRank: Rank } | null>(null);
   const lastCheckedXpRef = useRef(currentChild?.totalXp || 0);
 
+  // Jet resources and combat
+  const [jetResources, setJetResources] = useState<JetResources>(() =>
+    currentChild ? getJetResources(currentChild.id) : { missiles: 2, bullets: 20, flares: 3, chaff: 3 }
+  );
+  const [dogfightResult, setDogfightResult] = useState<DogfightResult | null>(null);
+  const [resourceStats, setResourceStats] = useState<SessionResourceStats>(createEmptyResourceStats);
+  const [correctAnswerCount, setCorrectAnswerCount] = useState(0);
+  const sessionXpAccumulator = useRef(0); // Track XP for resource earning
+
   // Timer state
   const [elapsedTime, setElapsedTime] = useState(0);
   const [questionStartTime, setQuestionStartTime] = useState(Date.now());
@@ -119,25 +139,37 @@ export function PracticePage() {
   // End session
   useEffect(() => {
     if (isSessionComplete() && !isProcessing) {
+      // Save jet resources
+      if (currentChild) {
+        saveJetResources(currentChild.id, jetResources);
+      }
+
+      // Calculate final XP (subtract dogfight losses)
+      const finalXp = Math.max(0, totalXp - resourceStats.xpLostToDogfights);
+
       // Save session data
       const sessionData = {
         answers,
-        totalXp,
+        totalXp: finalXp,
+        xpEarnedBeforeLosses: totalXp,
+        xpLostToDogfights: resourceStats.xpLostToDogfights,
         bestStreak,
         elapsedTime,
         config,
         startingRank,
+        resourceStats,
+        finalResources: jetResources,
       };
       sessionStorage.setItem('sessionResult', JSON.stringify(sessionData));
 
-      // Update child XP
-      if (currentChild && totalXp > 0) {
-        updateChildXp(currentChild.id, totalXp);
+      // Update child XP (with dogfight losses subtracted)
+      if (currentChild && finalXp > 0) {
+        updateChildXp(currentChild.id, finalXp);
       }
 
       navigate('/summary');
     }
-  }, [isSessionComplete, isProcessing, answers, totalXp, bestStreak, elapsedTime, config, currentChild, updateChildXp, navigate, startingRank]);
+  }, [isSessionComplete, isProcessing, answers, totalXp, bestStreak, elapsedTime, config, currentChild, updateChildXp, navigate, startingRank, jetResources, resourceStats]);
 
   // Get next question - either from review queue or generate new
   // Uses ref to get latest review queue (avoids stale closure in setTimeout)
@@ -268,6 +300,27 @@ export function PracticePage() {
       const newSessionXp = totalXp + xpResult.totalXp;
       setTotalXp(newSessionXp);
 
+      // Earn resources based on XP
+      const previousAccumulatedXp = sessionXpAccumulator.current;
+      sessionXpAccumulator.current += xpResult.totalXp;
+      const resourcesEarned = calculateResourcesEarned(previousAccumulatedXp, xpResult.totalXp);
+
+      if (resourcesEarned.missiles > 0 || resourcesEarned.bullets > 0 ||
+          resourcesEarned.flares > 0 || resourcesEarned.chaff > 0) {
+        setJetResources(prev => addResources(prev, resourcesEarned));
+        setResourceStats(prev => ({
+          ...prev,
+          missilesEarned: prev.missilesEarned + resourcesEarned.missiles,
+          bulletsEarned: prev.bulletsEarned + resourcesEarned.bullets,
+          flaresEarned: prev.flaresEarned + resourcesEarned.flares,
+          chaffEarned: prev.chaffEarned + resourcesEarned.chaff,
+        }));
+      }
+
+      // Track correct answer count and check for dogfight
+      const newCorrectCount = correctAnswerCount + 1;
+      setCorrectAnswerCount(newCorrectCount);
+
       // Check for level up
       const currentTotalXp = (currentChild?.totalXp || 0) + newSessionXp;
       const oldRank = getRankForXP(lastCheckedXpRef.current + totalXp);
@@ -288,16 +341,57 @@ export function PracticePage() {
       // Move to next question after delay
       // Calculate new answers length now (before setTimeout) to avoid stale closure
       const newAnswersLength = answers.length + 1;
-      setTimeout(() => {
-        setFeedback(null);
-        setIsProcessing(false);
-        const next = getNextQuestion(newAnswersLength);
-        setCurrentQuestion(next.question);
-        setIsReviewQuestion(next.isReview);
-        setUserAnswer('');
-        setAttempts(0);
-        setQuestionStartTime(Date.now());
-      }, 1500);
+
+      // Check if dogfight should trigger (every 5 correct answers)
+      if (shouldTriggerDogfight(newCorrectCount)) {
+        // Delay feedback dismissal to show dogfight
+        setTimeout(() => {
+          setFeedback(null);
+          // Trigger dogfight
+          setJetResources(currentResources => {
+            const { updatedResources, result } = processDogfight(currentResources);
+            setDogfightResult(result);
+
+            // Update resource stats
+            setResourceStats(prev => ({
+              ...prev,
+              missilesUsed: prev.missilesUsed + result.missilesUsed,
+              bulletsUsed: prev.bulletsUsed + result.bulletsUsed,
+              flaresUsed: prev.flaresUsed + result.flaresUsed,
+              chaffUsed: prev.chaffUsed + result.chaffUsed,
+              xpLostToDogfights: prev.xpLostToDogfights + result.xpLost,
+              dogfightsWon: prev.dogfightsWon + (result.victory ? 1 : 0),
+              dogfightsLost: prev.dogfightsLost + (result.victory ? 0 : 1),
+            }));
+
+            return updatedResources;
+          });
+        }, 1500);
+
+        // Wait for dogfight to complete before moving to next question
+        setTimeout(() => {
+          setDogfightResult(null);
+          setIsProcessing(false);
+          const next = getNextQuestion(newAnswersLength);
+          setCurrentQuestion(next.question);
+          setIsReviewQuestion(next.isReview);
+          setUserAnswer('');
+          setAttempts(0);
+          setQuestionStartTime(Date.now());
+        }, 4500); // 1.5s feedback + 3s dogfight
+      } else {
+        // Normal flow without dogfight
+        setTimeout(() => {
+          setFeedback(null);
+          setIsProcessing(false);
+          const next = getNextQuestion(newAnswersLength);
+          setCurrentQuestion(next.question);
+          setIsReviewQuestion(next.isReview);
+          setUserAnswer('');
+          setAttempts(0);
+          setQuestionStartTime(Date.now());
+        }, 1500);
+      }
     } else {
       // Wrong answer
       const newAttempts = attempts + 1;
@@ -339,19 +433,31 @@ export function PracticePage() {
 
   const handleQuit = () => {
     if (answers.length > 0) {
+      // Save jet resources
+      if (currentChild) {
+        saveJetResources(currentChild.id, jetResources);
+      }
+
+      // Calculate final XP (subtract dogfight losses)
+      const finalXp = Math.max(0, totalXp - resourceStats.xpLostToDogfights);
+
       // Save partial session data
       const sessionData = {
         answers,
-        totalXp,
+        totalXp: finalXp,
+        xpEarnedBeforeLosses: totalXp,
+        xpLostToDogfights: resourceStats.xpLostToDogfights,
         bestStreak,
         elapsedTime,
         config,
         startingRank,
+        resourceStats,
+        finalResources: jetResources,
       };
       sessionStorage.setItem('sessionResult', JSON.stringify(sessionData));
 
-      if (currentChild && totalXp > 0) {
-        updateChildXp(currentChild.id, totalXp);
+      if (currentChild && finalXp > 0) {
+        updateChildXp(currentChild.id, finalXp);
       }
 
       navigate('/summary');
@@ -424,6 +530,9 @@ export function PracticePage() {
               {totalXp}
             </span>
           </div>
+
+          {/* Jet Resources */}
+          <ResourceDisplay resources={jetResources} compact />
 
           {/* Streak */}
           {currentStreak >= 3 && (
@@ -505,6 +614,16 @@ export function PracticePage() {
           variant="mini"
         />
       )}
+
+      {/* Dogfight overlay */}
+      <AnimatePresence>
+        {dogfightResult && (
+          <DogfightOverlay
+            result={dogfightResult}
+            onComplete={() => setDogfightResult(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
