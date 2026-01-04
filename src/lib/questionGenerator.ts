@@ -1,4 +1,5 @@
-import type { Question, SessionConfig, FactMastery } from '../types';
+import type { Question, SessionConfig, FactMastery, DigitCombo } from '../types';
+import { parseDigitCombo } from '../types';
 import { getFactsNeedingPractice } from './factMastery';
 
 // Generate a unique ID
@@ -14,6 +15,24 @@ function randomInt(min: number, max: number): number {
 // Get random element from array
 function randomElement<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// Determine which question source to use based on config
+type QuestionSource = 'speed' | 'mental';
+
+function pickQuestionSource(config: SessionConfig): QuestionSource {
+  const sources: QuestionSource[] = [];
+  if (config.speedTimesTablesEnabled && config.speedOperations.length > 0) {
+    sources.push('speed');
+  }
+  if (config.generalMentalMathEnabled && config.mentalMathOperations.length > 0) {
+    sources.push('mental');
+  }
+  if (sources.length === 0) {
+    // Fallback to speed times tables
+    return 'speed';
+  }
+  return randomElement(sources);
 }
 
 // Weighted random selection - items with lower mastery get higher weight
@@ -125,10 +144,55 @@ function generateDivisionQuestion(config: SessionConfig, childId?: string): Ques
   };
 }
 
-// Generate addition question
-function generateAdditionQuestion(config: SessionConfig): Question {
-  const operand1 = generateNumberWithDigits(config.addend1Digits);
-  const operand2 = generateNumberWithDigits(config.addend2Digits);
+
+// ============================================
+// General Mental Math question generators
+// ============================================
+
+// Generate mental math multiplication question using digit combos
+function generateMentalMultiplyQuestion(combos: DigitCombo[]): Question {
+  const combo = randomElement(combos);
+  const [d1, d2] = parseDigitCombo(combo);
+  const operand1 = generateNumberWithDigits(d1);
+  const operand2 = generateNumberWithDigits(d2);
+  const answer = operand1 * operand2;
+
+  return {
+    id: generateId(),
+    operation: 'multiply',
+    operand1,
+    operand2,
+    correctAnswer: answer,
+    displayString: `${operand1} × ${operand2}`,
+  };
+}
+
+// Generate mental math division question (no remainders)
+function generateMentalDivideQuestion(combos: DigitCombo[]): Question {
+  const combo = randomElement(combos);
+  const [d1, d2] = parseDigitCombo(combo);
+
+  // Generate divisor and quotient first to ensure no remainder
+  const divisor = generateNumberWithDigits(d1);
+  const quotient = generateNumberWithDigits(d2);
+  const dividend = divisor * quotient;
+
+  return {
+    id: generateId(),
+    operation: 'divide',
+    operand1: dividend,
+    operand2: divisor,
+    correctAnswer: quotient,
+    displayString: `${dividend} ÷ ${divisor}`,
+  };
+}
+
+// Generate mental math addition question
+function generateMentalAddQuestion(combos: DigitCombo[]): Question {
+  const combo = randomElement(combos);
+  const [d1, d2] = parseDigitCombo(combo);
+  const operand1 = generateNumberWithDigits(d1);
+  const operand2 = generateNumberWithDigits(d2);
   const answer = operand1 + operand2;
 
   return {
@@ -141,12 +205,14 @@ function generateAdditionQuestion(config: SessionConfig): Question {
   };
 }
 
-// Generate subtraction question (always positive result)
-function generateSubtractionQuestion(config: SessionConfig): Question {
-  let operand1 = generateNumberWithDigits(config.addend1Digits);
-  let operand2 = generateNumberWithDigits(config.addend2Digits);
+// Generate mental math subtraction question (always positive)
+function generateMentalSubtractQuestion(combos: DigitCombo[]): Question {
+  const combo = randomElement(combos);
+  const [d1, d2] = parseDigitCombo(combo);
+  let operand1 = generateNumberWithDigits(d1);
+  let operand2 = generateNumberWithDigits(d2);
 
-  // Ensure operand1 is larger for positive result
+  // Ensure operand1 >= operand2 for positive result
   if (operand2 > operand1) {
     [operand1, operand2] = [operand2, operand1];
   }
@@ -163,19 +229,41 @@ function generateSubtractionQuestion(config: SessionConfig): Question {
   };
 }
 
+// Generate a mental math question based on enabled operations
+function generateMentalMathQuestion(config: SessionConfig): Question {
+  const operation = randomElement(config.mentalMathOperations);
+
+  switch (operation) {
+    case 'multiply':
+      return generateMentalMultiplyQuestion(config.multiplyDigitCombos);
+    case 'divide':
+      return generateMentalDivideQuestion(config.divideDigitCombos);
+    case 'add':
+      return generateMentalAddQuestion(config.addDigitCombos);
+    case 'subtract':
+      return generateMentalSubtractQuestion(config.subtractDigitCombos);
+    default:
+      return generateMentalMultiplyQuestion(config.multiplyDigitCombos);
+  }
+}
+
 // Generate a question based on config, with optional spaced repetition for a child
 export function generateQuestion(config: SessionConfig, childId?: string): Question {
-  const operation = randomElement(config.operations);
+  // Pick which question source to use
+  const source = pickQuestionSource(config);
+
+  if (source === 'mental') {
+    return generateMentalMathQuestion(config);
+  }
+
+  // Speed Times Tables mode
+  const operation = randomElement(config.speedOperations);
 
   switch (operation) {
     case 'multiply':
       return generateMultiplicationQuestion(config, childId);
     case 'divide':
       return generateDivisionQuestion(config, childId);
-    case 'add':
-      return generateAdditionQuestion(config);
-    case 'subtract':
-      return generateSubtractionQuestion(config);
     default:
       return generateMultiplicationQuestion(config, childId);
   }

@@ -1,6 +1,18 @@
 // Operation types
 export type Operation = 'multiply' | 'divide' | 'add' | 'subtract';
 
+// Digit combination for General Mental Math (e.g., "1x2" means 1-digit × 2-digit)
+export type DigitCombo = '1x1' | '1x2' | '1x3' | '2x2' | '2x3' | '3x3';
+
+// Parse digit combo into [digits1, digits2]
+export function parseDigitCombo(combo: DigitCombo): [number, number] {
+  const parts = combo.split('x').map(Number) as [number, number];
+  return parts;
+}
+
+// All available digit combos
+export const DIGIT_COMBOS: DigitCombo[] = ['1x1', '1x2', '1x3', '2x2', '2x3', '3x3'];
+
 // User and profile types
 export interface Profile {
   id: string;
@@ -25,32 +37,46 @@ export interface Rank {
   name: string;
   title: string;
   xpRequired: number;
+  icon: string;      // Emoji icon for rank
+  jet: string;       // Jet name
+  jetIcon: string;   // Jet emoji
 }
 
 export const RANKS: Rank[] = [
-  { level: 1, name: 'Cadet', title: 'Cadet', xpRequired: 0 },
-  { level: 2, name: 'Airman', title: 'Airman', xpRequired: 100 },
-  { level: 3, name: 'Corporal', title: 'Corporal', xpRequired: 300 },
-  { level: 4, name: 'Sergeant', title: 'Sergeant', xpRequired: 600 },
-  { level: 5, name: 'Lieutenant', title: 'Lieutenant', xpRequired: 1000 },
-  { level: 6, name: 'Captain', title: 'Captain', xpRequired: 1500 },
-  { level: 7, name: 'Major', title: 'Major', xpRequired: 2200 },
-  { level: 8, name: 'Colonel', title: 'Colonel', xpRequired: 3000 },
-  { level: 9, name: 'Commander', title: 'Commander', xpRequired: 4000 },
-  { level: 10, name: 'General', title: 'General', xpRequired: 5500 },
-  { level: 11, name: 'Ace Pilot', title: 'Ace Pilot ★', xpRequired: 7500 },
+  { level: 1, name: 'Cadet', title: 'Cadet', xpRequired: 0, icon: '🎖️', jet: 'Training Prop', jetIcon: '🛩️' },
+  { level: 2, name: 'Airman', title: 'Airman', xpRequired: 100, icon: '🪖', jet: 'Light Fighter', jetIcon: '✈️' },
+  { level: 3, name: 'Corporal', title: 'Corporal', xpRequired: 300, icon: '⭐', jet: 'Scout Jet', jetIcon: '🛫' },
+  { level: 4, name: 'Sergeant', title: 'Sergeant', xpRequired: 600, icon: '⭐⭐', jet: 'Strike Fighter', jetIcon: '🔥' },
+  { level: 5, name: 'Lieutenant', title: 'Lieutenant', xpRequired: 1000, icon: '🎗️', jet: 'Interceptor', jetIcon: '⚡' },
+  { level: 6, name: 'Captain', title: 'Captain', xpRequired: 1500, icon: '🏅', jet: 'Heavy Fighter', jetIcon: '💨' },
+  { level: 7, name: 'Major', title: 'Major', xpRequired: 2200, icon: '🎖️⭐', jet: 'Stealth Jet', jetIcon: '👻' },
+  { level: 8, name: 'Colonel', title: 'Colonel', xpRequired: 3000, icon: '🦅', jet: 'Super Hornet', jetIcon: '🐝' },
+  { level: 9, name: 'Commander', title: 'Commander', xpRequired: 4000, icon: '⚔️', jet: 'Raptor', jetIcon: '🦅' },
+  { level: 10, name: 'General', title: 'General', xpRequired: 5500, icon: '👑', jet: 'Black Hawk', jetIcon: '🦇' },
+  { level: 11, name: 'Ace Pilot', title: 'Ace Pilot ★', xpRequired: 7500, icon: '🏆', jet: 'Legendary Phoenix', jetIcon: '🔱' },
 ];
 
 // Session configuration
 export interface SessionConfig {
-  operations: Operation[];
+  // Question source modes (can enable one or both)
+  speedTimesTablesEnabled: boolean;
+  generalMentalMathEnabled: boolean;
 
-  // Multiplication/Division config
-  primaryNumbers: number[];
+  // Speed Times Tables config (operations: multiply, divide)
+  speedOperations: ('multiply' | 'divide')[];
+  primaryNumbers: number[];           // Tables to practice (1-12)
   multiplierRanges: { min: number; max: number }[];
 
-  // Addition/Subtraction config
-  addend1Digits: number; // 1, 2, or 3 digits
+  // General Mental Math config (per-operation digit combos)
+  mentalMathOperations: Operation[];  // Which operations are enabled
+  multiplyDigitCombos: DigitCombo[];  // e.g., ['1x1', '1x2', '2x2']
+  divideDigitCombos: DigitCombo[];
+  addDigitCombos: DigitCombo[];
+  subtractDigitCombos: DigitCombo[];
+
+  // Legacy fields for backwards compatibility
+  operations: Operation[];            // Combined operations (computed)
+  addend1Digits: number;
   addend2Digits: number;
 
   // Session limits
@@ -132,48 +158,50 @@ export interface Homework {
   completedAt?: string;
 }
 
-// Session presets
-export interface SessionPreset {
-  name: string;
-  description: string;
-  config: Partial<SessionConfig>;
+// Default session config
+export function createDefaultSessionConfig(): SessionConfig {
+  return {
+    // Modes
+    speedTimesTablesEnabled: true,
+    generalMentalMathEnabled: false,
+
+    // Speed Times Tables
+    speedOperations: ['multiply'],
+    primaryNumbers: [2, 3, 4, 5],
+    multiplierRanges: [{ min: 1, max: 10 }],
+
+    // General Mental Math
+    mentalMathOperations: [],
+    multiplyDigitCombos: ['1x1'],
+    divideDigitCombos: ['1x1'],
+    addDigitCombos: ['1x1'],
+    subtractDigitCombos: ['1x1'],
+
+    // Legacy
+    operations: ['multiply'],
+    addend1Digits: 1,
+    addend2Digits: 1,
+
+    // Session limits
+    mode: 'questions',
+    questionCount: 20,
+  };
 }
 
-export const SESSION_PRESETS: SessionPreset[] = [
-  {
-    name: 'Easy',
-    description: '1-5 tables, ×1-5',
-    config: {
-      operations: ['multiply'],
-      primaryNumbers: [1, 2, 3, 4, 5],
-      multiplierRanges: [{ min: 1, max: 5 }],
-      mode: 'questions',
-      questionCount: 20,
-    },
-  },
-  {
-    name: 'Medium',
-    description: '1-10 tables, ×1-10',
-    config: {
-      operations: ['multiply'],
-      primaryNumbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-      multiplierRanges: [{ min: 1, max: 10 }],
-      mode: 'questions',
-      questionCount: 20,
-    },
-  },
-  {
-    name: 'Hard',
-    description: '6-12 tables, ×6-12',
-    config: {
-      operations: ['multiply'],
-      primaryNumbers: [6, 7, 8, 9, 10, 11, 12],
-      multiplierRanges: [{ min: 6, max: 12 }],
-      mode: 'questions',
-      questionCount: 20,
-    },
-  },
-];
+// Compute combined operations from config
+export function computeOperations(config: SessionConfig): Operation[] {
+  const ops = new Set<Operation>();
+
+  if (config.speedTimesTablesEnabled) {
+    config.speedOperations.forEach(op => ops.add(op));
+  }
+
+  if (config.generalMentalMathEnabled) {
+    config.mentalMathOperations.forEach(op => ops.add(op));
+  }
+
+  return Array.from(ops);
+}
 
 // XP calculation constants
 export const XP_CONFIG = {

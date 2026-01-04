@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, Settings, LogOut, Trophy, Zap, Target, Clock, Hash, History } from 'lucide-react';
+import { Play, LogOut, Trophy, Zap, Clock, Hash, History, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
-import { SESSION_PRESETS } from '../types';
-import type { SessionConfig, Operation } from '../types';
+import { createDefaultSessionConfig, DIGIT_COMBOS, computeOperations } from '../types';
+import type { SessionConfig, Operation, DigitCombo } from '../types';
 import { getXPProgressToNextRank } from '../lib/xpCalculator';
 
 // Mission history type
@@ -28,20 +28,14 @@ function loadCustomConfig(): SessionConfig {
   const stored = localStorage.getItem(CUSTOM_CONFIG_KEY);
   if (stored) {
     try {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      // Merge with defaults to ensure all new fields exist
+      return { ...createDefaultSessionConfig(), ...parsed };
     } catch {
       // Invalid JSON, return default
     }
   }
-  return {
-    operations: ['multiply'],
-    primaryNumbers: [2, 3, 4, 5],
-    multiplierRanges: [{ min: 1, max: 10 }],
-    addend1Digits: 1,
-    addend2Digits: 1,
-    mode: 'questions',
-    questionCount: 20,
-  };
+  return createDefaultSessionConfig();
 }
 
 // Save custom config to localStorage
@@ -92,14 +86,28 @@ function formatTimeAgo(timestamp: number): string {
   return `${weeks}w ago`;
 }
 
+// Check if a mission uses speed times tables
+function missionUsesSpeedTables(config: SessionConfig): boolean {
+  return config.speedTimesTablesEnabled ||
+    (config.primaryNumbers && config.primaryNumbers.length > 0);
+}
+
+// Check if a mission uses mental math
+function missionUsesMentalMath(config: SessionConfig): boolean {
+  return config.generalMentalMathEnabled || false;
+}
+
 export function HomePage() {
   const navigate = useNavigate();
   const { currentChild, signOut } = useAuth();
-  const [showConfig, setShowConfig] = useState(false);
   const [missionHistory, setMissionHistory] = useState<MissionHistory[]>([]);
 
   // Session configuration state - load from localStorage
   const [config, setConfig] = useState<SessionConfig>(loadCustomConfig);
+
+  // Collapsible sections
+  const [speedTablesExpanded, setSpeedTablesExpanded] = useState(true);
+  const [mentalMathExpanded, setMentalMathExpanded] = useState(true);
 
   // Load mission history on mount
   useEffect(() => {
@@ -110,14 +118,14 @@ export function HomePage() {
     ? getXPProgressToNextRank(currentChild.totalXp)
     : null;
 
-  const startSession = (customConfig?: SessionConfig) => {
-    const sessionConfig = customConfig || config;
-    // Save custom config for next time
-    if (!customConfig) {
-      saveCustomConfig(config);
-    }
-    // Store config in sessionStorage and navigate
-    sessionStorage.setItem('sessionConfig', JSON.stringify(sessionConfig));
+  const startSession = () => {
+    // Compute combined operations before saving
+    const finalConfig = {
+      ...config,
+      operations: computeOperations(config),
+    };
+    saveCustomConfig(finalConfig);
+    sessionStorage.setItem('sessionConfig', JSON.stringify(finalConfig));
     navigate('/practice');
   };
 
@@ -126,16 +134,21 @@ export function HomePage() {
     navigate('/practice');
   };
 
-  const applyPreset = (preset: typeof SESSION_PRESETS[0]) => {
-    setConfig(c => ({ ...c, ...preset.config }));
+  const toggleSpeedOperation = (op: 'multiply' | 'divide') => {
+    setConfig(c => {
+      const ops = c.speedOperations.includes(op)
+        ? c.speedOperations.filter(o => o !== op)
+        : [...c.speedOperations, op];
+      return { ...c, speedOperations: ops.length > 0 ? ops : c.speedOperations };
+    });
   };
 
-  const toggleOperation = (op: Operation) => {
+  const toggleMentalMathOperation = (op: Operation) => {
     setConfig(c => {
-      const ops = c.operations.includes(op)
-        ? c.operations.filter(o => o !== op)
-        : [...c.operations, op];
-      return { ...c, operations: ops.length > 0 ? ops : c.operations };
+      const ops = c.mentalMathOperations.includes(op)
+        ? c.mentalMathOperations.filter(o => o !== op)
+        : [...c.mentalMathOperations, op];
+      return { ...c, mentalMathOperations: ops };
     });
   };
 
@@ -148,31 +161,66 @@ export function HomePage() {
     });
   };
 
+  const toggleDigitCombo = (op: Operation, combo: DigitCombo) => {
+    setConfig(c => {
+      const key = `${op}DigitCombos` as keyof SessionConfig;
+      const current = (c[key] as DigitCombo[]) || [];
+      const updated = current.includes(combo)
+        ? current.filter(d => d !== combo)
+        : [...current, combo];
+      return { ...c, [key]: updated.length > 0 ? updated : current };
+    });
+  };
+
+  // Check if ready to start
+  const canStart = (config.speedTimesTablesEnabled && config.speedOperations.length > 0) ||
+    (config.generalMentalMathEnabled && config.mentalMathOperations.length > 0);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950">
-      {/* Header */}
-      <header className="p-4 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="text-3xl">✈️</div>
-          <div>
-            <h1 className="text-white font-bold text-xl">
-              {currentChild?.name || 'Pilot'}
-            </h1>
-            {xpProgress && (
-              <div className="text-slate-400 text-sm">
-                {xpProgress.currentRank.title}
-              </div>
-            )}
+      {/* Header - Prominent Rank Display */}
+      <header className="p-4">
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex items-center gap-4">
+            {/* Large Jet Icon */}
+            <div className="text-5xl">
+              {xpProgress?.currentRank.jetIcon || '✈️'}
+            </div>
+            <div>
+              <h1 className="text-white font-bold text-2xl">
+                {currentChild?.name || 'Pilot'}
+              </h1>
+              {xpProgress && (
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-2xl">{xpProgress.currentRank.icon}</span>
+                  <span className="text-amber-400 font-bold text-lg">
+                    {xpProgress.currentRank.title}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
+          <Button variant="ghost" size="sm" onClick={signOut}>
+            <LogOut className="w-4 h-4" />
+          </Button>
         </div>
-        <Button variant="ghost" size="sm" onClick={signOut}>
-          <LogOut className="w-4 h-4 mr-2" /> Sign Out
-        </Button>
-      </header>
 
-      {/* Stats Bar */}
-      {currentChild && xpProgress && (
-        <div className="px-4 mb-8">
+        {/* Jet Name Banner */}
+        {xpProgress && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-blue-600/30 to-purple-600/30 rounded-xl p-3 mb-4 border border-blue-500/30"
+          >
+            <div className="text-center">
+              <span className="text-slate-400 text-sm">Current Jet: </span>
+              <span className="text-white font-bold">{xpProgress.currentRank.jet}</span>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Stats Bar */}
+        {currentChild && xpProgress && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -214,351 +262,414 @@ export function HomePage() {
               </div>
             )}
           </motion.div>
-        </div>
-      )}
+        )}
+      </header>
 
       {/* Main content */}
       <main className="px-4 pb-8">
-        {!showConfig ? (
-          // Quick start view
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
-            <h2 className="text-2xl font-bold text-white text-center mb-6">
-              Ready to fly?
-            </h2>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          <h2 className="text-2xl font-bold text-white text-center mb-4">
+            Configure Your Mission
+          </h2>
 
-            {/* Presets */}
-            <div className="grid gap-3">
-              {SESSION_PRESETS.map((preset, i) => (
-                <motion.button
-                  key={preset.name}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  onClick={() => {
-                    applyPreset(preset);
-                    startSession();
-                  }}
-                  className="w-full p-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-left transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-white font-bold text-lg">
-                        {preset.name}
-                      </div>
-                      <div className="text-blue-200 text-sm">
-                        {preset.description}
-                      </div>
-                    </div>
-                    <Play className="w-8 h-8 text-white" />
-                  </div>
-                </motion.button>
-              ))}
-            </div>
-
-            {/* Custom button */}
-            <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              onClick={() => setShowConfig(true)}
-              className="w-full p-4 rounded-2xl bg-slate-700 hover:bg-slate-600 text-left transition-colors border border-slate-600"
+          {/* Speed Times Tables Section */}
+          <div className="bg-slate-800/50 rounded-2xl border border-slate-700 overflow-hidden">
+            <button
+              onClick={() => setSpeedTablesExpanded(!speedTablesExpanded)}
+              className="w-full p-4 flex items-center justify-between"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={config.speedTimesTablesEnabled}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    setConfig(c => ({ ...c, speedTimesTablesEnabled: !c.speedTimesTablesEnabled }));
+                  }}
+                  className="w-5 h-5 rounded accent-blue-500"
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <div className="text-left">
+                  <h3 className="text-white font-bold text-lg">Speed Times Tables</h3>
+                  <p className="text-slate-400 text-sm">Practice multiplication & division facts</p>
+                </div>
+              </div>
+              {speedTablesExpanded ? (
+                <ChevronUp className="w-5 h-5 text-slate-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-slate-400" />
+              )}
+            </button>
+
+            {speedTablesExpanded && config.speedTimesTablesEnabled && (
+              <div className="px-4 pb-4 space-y-4">
+                {/* Operations */}
                 <div>
-                  <div className="text-white font-bold text-lg">
-                    Custom Mission
-                  </div>
-                  <div className="text-slate-400 text-sm">
-                    Choose your own settings
-                  </div>
-                </div>
-                <Settings className="w-8 h-8 text-slate-400" />
-              </div>
-            </motion.button>
-
-            {/* Recent Missions */}
-            {missionHistory.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="mt-8"
-              >
-                <div className="flex items-center gap-2 mb-4">
-                  <History className="w-5 h-5 text-slate-400" />
-                  <h3 className="text-lg font-bold text-white">Recent Missions</h3>
-                </div>
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {missionHistory.map((mission, i) => (
-                    <motion.button
-                      key={mission.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.5 + i * 0.05 }}
-                      onClick={() => startFromHistory(mission)}
-                      className="w-full p-3 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 text-left transition-colors border border-slate-700"
-                    >
-                      {/* Top row: Operations, session type, time ago, play button */}
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          {/* Operation icons */}
-                          <span className="text-base font-medium text-white">
-                            {mission.config.operations.map(op => {
-                              if (op === 'multiply') return '×';
-                              if (op === 'divide') return '÷';
-                              if (op === 'add') return '+';
-                              if (op === 'subtract') return '−';
-                              return '';
-                            }).join(' ')}
-                          </span>
-                          {/* Session type */}
-                          <span className="text-xs text-slate-400 bg-slate-700 px-2 py-0.5 rounded">
-                            {mission.config.mode === 'questions'
-                              ? `${mission.config.questionCount} Q`
-                              : `${mission.config.timeLimitMinutes}m`
-                            }
-                          </span>
-                          {/* Results */}
-                          <span className="text-xs text-emerald-400">
-                            {mission.correctAnswers}/{mission.totalQuestions} ✓
-                          </span>
-                          {mission.wrongAnswers > 0 && (
-                            <span className="text-xs text-red-400">
-                              {mission.wrongAnswers} ✗
-                            </span>
-                          )}
-                          <span className="text-xs text-slate-500">
-                            {(mission.avgTimePerQuestion / 1000).toFixed(1)}s avg
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-slate-500">
-                            {formatTimeAgo(mission.timestamp)}
-                          </span>
-                          <Play className="w-4 h-4 text-blue-400" />
-                        </div>
-                      </div>
-                      {/* Bottom row: Tables and multiplier - full width */}
-                      {(mission.config.operations.includes('multiply') || mission.config.operations.includes('divide')) && (
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {/* Tables - show all numbers */}
-                          <span className="text-xs text-amber-400">Tables:</span>
-                          <div className="flex items-center gap-1 flex-wrap">
-                            {mission.config.primaryNumbers.map(num => (
-                              <span
-                                key={num}
-                                className="text-xs text-amber-400 bg-amber-500/20 px-1.5 py-0.5 rounded font-medium"
-                              >
-                                {num}
-                              </span>
-                            ))}
-                          </div>
-                          {/* Multiplier range */}
-                          {mission.config.multiplierRanges && mission.config.multiplierRanges.length > 0 && (
-                            <>
-                              <span className="text-xs text-slate-500 ml-2">×</span>
-                              <span className="text-xs text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded">
-                                {mission.config.multiplierRanges[0].min}-{mission.config.multiplierRanges[mission.config.multiplierRanges.length - 1].max}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </motion.button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </motion.div>
-        ) : (
-          // Configuration view
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="space-y-6"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-white">
-                Custom Mission
-              </h2>
-              <Button variant="ghost" size="sm" onClick={() => setShowConfig(false)}>
-                Back
-              </Button>
-            </div>
-
-            {/* Operations */}
-            <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700">
-              <h3 className="text-white font-bold mb-3 flex items-center gap-2">
-                <Target className="w-5 h-5" /> Operations
-              </h3>
-              <div className="grid grid-cols-2 gap-2">
-                {(['multiply', 'divide', 'add', 'subtract'] as Operation[]).map(op => (
-                  <button
-                    key={op}
-                    onClick={() => toggleOperation(op)}
-                    className={`p-3 rounded-xl font-medium transition-colors ${
-                      config.operations.includes(op)
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-slate-700 text-slate-400'
-                    }`}
-                  >
-                    {op === 'multiply' && '× Multiply'}
-                    {op === 'divide' && '÷ Divide'}
-                    {op === 'add' && '+ Add'}
-                    {op === 'subtract' && '− Subtract'}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Primary numbers (for multiply/divide) */}
-            {(config.operations.includes('multiply') || config.operations.includes('divide')) && (
-              <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700">
-                <h3 className="text-white font-bold mb-3">Tables to Practice</h3>
-                <div className="grid grid-cols-6 gap-2">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (
-                    <button
-                      key={num}
-                      onClick={() => togglePrimaryNumber(num)}
-                      className={`p-2 rounded-lg font-bold transition-colors ${
-                        config.primaryNumbers.includes(num)
-                          ? 'bg-amber-500 text-white'
-                          : 'bg-slate-700 text-slate-400'
-                      }`}
-                    >
-                      {num}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Multiplier range */}
-            {(config.operations.includes('multiply') || config.operations.includes('divide')) && (
-              <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700">
-                <h3 className="text-white font-bold mb-3">Multiply By</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { label: '1-5', min: 1, max: 5 },
-                    { label: '6-10', min: 6, max: 10 },
-                    { label: '11-15', min: 11, max: 15 },
-                    { label: '16-20', min: 16, max: 20 },
-                  ].map(range => {
-                    const isSelected = config.multiplierRanges.some(
-                      r => r.min === range.min && r.max === range.max
-                    );
-                    return (
+                  <h4 className="text-slate-300 text-sm font-medium mb-2">Operations</h4>
+                  <div className="flex gap-2">
+                    {(['multiply', 'divide'] as const).map(op => (
                       <button
-                        key={range.label}
-                        onClick={() => {
-                          setConfig(c => {
-                            const existing = c.multiplierRanges.find(
-                              r => r.min === range.min && r.max === range.max
-                            );
-                            if (existing) {
-                              const filtered = c.multiplierRanges.filter(
-                                r => r.min !== range.min || r.max !== range.max
-                              );
-                              return {
-                                ...c,
-                                multiplierRanges: filtered.length > 0 ? filtered : c.multiplierRanges,
-                              };
-                            }
-                            return {
-                              ...c,
-                              multiplierRanges: [...c.multiplierRanges, { min: range.min, max: range.max }],
-                            };
-                          });
-                        }}
-                        className={`p-3 rounded-xl font-medium transition-colors ${
-                          isSelected
-                            ? 'bg-emerald-600 text-white'
+                        key={op}
+                        onClick={() => toggleSpeedOperation(op)}
+                        className={`flex-1 p-2 rounded-lg font-medium transition-colors ${
+                          config.speedOperations.includes(op)
+                            ? 'bg-blue-600 text-white'
                             : 'bg-slate-700 text-slate-400'
                         }`}
                       >
-                        {range.label}
+                        {op === 'multiply' ? '× Multiply' : '÷ Divide'}
                       </button>
-                    );
-                  })}
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tables to practice */}
+                <div>
+                  <h4 className="text-slate-300 text-sm font-medium mb-2">Tables</h4>
+                  <div className="grid grid-cols-6 gap-2">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (
+                      <button
+                        key={num}
+                        onClick={() => togglePrimaryNumber(num)}
+                        className={`p-2 rounded-lg font-bold transition-colors ${
+                          config.primaryNumbers.includes(num)
+                            ? 'bg-amber-500 text-white'
+                            : 'bg-slate-700 text-slate-400'
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Multiplier ranges */}
+                <div>
+                  <h4 className="text-slate-300 text-sm font-medium mb-2">Multiply By</h4>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { label: '1-5', min: 1, max: 5 },
+                      { label: '6-10', min: 6, max: 10 },
+                      { label: '11-15', min: 11, max: 15 },
+                      { label: '16-20', min: 16, max: 20 },
+                    ].map(range => {
+                      const isSelected = config.multiplierRanges.some(
+                        r => r.min === range.min && r.max === range.max
+                      );
+                      return (
+                        <button
+                          key={range.label}
+                          onClick={() => {
+                            setConfig(c => {
+                              const existing = c.multiplierRanges.find(
+                                r => r.min === range.min && r.max === range.max
+                              );
+                              if (existing) {
+                                const filtered = c.multiplierRanges.filter(
+                                  r => r.min !== range.min || r.max !== range.max
+                                );
+                                return {
+                                  ...c,
+                                  multiplierRanges: filtered.length > 0 ? filtered : c.multiplierRanges,
+                                };
+                              }
+                              return {
+                                ...c,
+                                multiplierRanges: [...c.multiplierRanges, { min: range.min, max: range.max }],
+                              };
+                            });
+                          }}
+                          className={`p-2 rounded-lg font-medium transition-colors text-sm ${
+                            isSelected
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-slate-700 text-slate-400'
+                          }`}
+                        >
+                          {range.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}
+          </div>
 
-            {/* Session mode */}
-            <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700">
-              <h3 className="text-white font-bold mb-3">Session Type</h3>
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                <button
-                  onClick={() => setConfig(c => ({ ...c, mode: 'questions' }))}
-                  className={`p-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
-                    config.mode === 'questions'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-slate-700 text-slate-400'
-                  }`}
-                >
-                  <Hash className="w-4 h-4" /> Questions
-                </button>
-                <button
-                  onClick={() => setConfig(c => ({ ...c, mode: 'time' }))}
-                  className={`p-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
-                    config.mode === 'time'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-slate-700 text-slate-400'
-                  }`}
-                >
-                  <Clock className="w-4 h-4" /> Timed
-                </button>
+          {/* General Mental Math Section */}
+          <div className="bg-slate-800/50 rounded-2xl border border-slate-700 overflow-hidden">
+            <button
+              onClick={() => setMentalMathExpanded(!mentalMathExpanded)}
+              className="w-full p-4 flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={config.generalMentalMathEnabled}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    setConfig(c => ({ ...c, generalMentalMathEnabled: !c.generalMentalMathEnabled }));
+                  }}
+                  className="w-5 h-5 rounded accent-purple-500"
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <div className="text-left">
+                  <h3 className="text-white font-bold text-lg">General Mental Math</h3>
+                  <p className="text-slate-400 text-sm">Multi-digit arithmetic practice</p>
+                </div>
               </div>
-
-              {config.mode === 'questions' && (
-                <div className="grid grid-cols-4 gap-2">
-                  {[10, 20, 30, 50].map(count => (
-                    <button
-                      key={count}
-                      onClick={() => setConfig(c => ({ ...c, questionCount: count }))}
-                      className={`p-2 rounded-lg font-medium transition-colors ${
-                        config.questionCount === count
-                          ? 'bg-amber-500 text-white'
-                          : 'bg-slate-700 text-slate-400'
-                      }`}
-                    >
-                      {count}
-                    </button>
-                  ))}
-                </div>
+              {mentalMathExpanded ? (
+                <ChevronUp className="w-5 h-5 text-slate-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-slate-400" />
               )}
+            </button>
 
-              {config.mode === 'time' && (
-                <div>
-                  <select
-                    value={config.timeLimitMinutes || 5}
-                    onChange={(e) => setConfig(c => ({ ...c, timeLimitMinutes: parseInt(e.target.value) }))}
-                    className="w-full p-3 rounded-xl bg-slate-700 text-white font-medium border border-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  >
-                    {[1, 2, 3, 5, 10, 15, 20, 30].map(mins => (
-                      <option key={mins} value={mins}>
-                        {mins} {mins === 1 ? 'minute' : 'minutes'}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+            {mentalMathExpanded && config.generalMentalMathEnabled && (
+              <div className="px-4 pb-4 space-y-4">
+                {/* Operations with digit combos */}
+                {(['multiply', 'divide', 'add', 'subtract'] as Operation[]).map(op => {
+                  const isEnabled = config.mentalMathOperations.includes(op);
+                  const comboKey = `${op}DigitCombos` as keyof SessionConfig;
+                  const combos = (config[comboKey] as DigitCombo[]) || [];
+
+                  return (
+                    <div key={op} className="bg-slate-700/50 rounded-xl p-3">
+                      <div className="flex items-center gap-3 mb-2">
+                        <input
+                          type="checkbox"
+                          checked={isEnabled}
+                          onChange={() => toggleMentalMathOperation(op)}
+                          className="w-4 h-4 rounded accent-purple-500"
+                        />
+                        <span className={`font-medium ${isEnabled ? 'text-white' : 'text-slate-500'}`}>
+                          {op === 'multiply' && '× Multiplication'}
+                          {op === 'divide' && '÷ Division'}
+                          {op === 'add' && '+ Addition'}
+                          {op === 'subtract' && '− Subtraction'}
+                        </span>
+                      </div>
+
+                      {isEnabled && (
+                        <div className="flex flex-wrap gap-2 ml-7">
+                          {DIGIT_COMBOS.map(combo => (
+                            <button
+                              key={combo}
+                              onClick={() => toggleDigitCombo(op, combo)}
+                              className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                                combos.includes(combo)
+                                  ? 'bg-purple-600 text-white'
+                                  : 'bg-slate-600 text-slate-400'
+                              }`}
+                            >
+                              {combo.replace('x', '×')}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Session Settings */}
+          <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700">
+            <h3 className="text-white font-bold mb-3">Session Settings</h3>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <button
+                onClick={() => setConfig(c => ({ ...c, mode: 'questions' }))}
+                className={`p-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
+                  config.mode === 'questions'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-700 text-slate-400'
+                }`}
+              >
+                <Hash className="w-4 h-4" /> Questions
+              </button>
+              <button
+                onClick={() => setConfig(c => ({ ...c, mode: 'time' }))}
+                className={`p-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
+                  config.mode === 'time'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-700 text-slate-400'
+                }`}
+              >
+                <Clock className="w-4 h-4" /> Timed
+              </button>
             </div>
 
-            {/* Start button */}
-            <Button
-              size="xl"
-              className="w-full"
-              onClick={startSession}
+            {config.mode === 'questions' && (
+              <div className="grid grid-cols-4 gap-2">
+                {[10, 20, 30, 50].map(count => (
+                  <button
+                    key={count}
+                    onClick={() => setConfig(c => ({ ...c, questionCount: count }))}
+                    className={`p-2 rounded-lg font-medium transition-colors ${
+                      config.questionCount === count
+                        ? 'bg-amber-500 text-white'
+                        : 'bg-slate-700 text-slate-400'
+                    }`}
+                  >
+                    {count}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {config.mode === 'time' && (
+              <select
+                value={config.timeLimitMinutes || 5}
+                onChange={(e) => setConfig(c => ({ ...c, timeLimitMinutes: parseInt(e.target.value) }))}
+                className="w-full p-3 rounded-xl bg-slate-700 text-white font-medium border border-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                {[1, 2, 3, 5, 10, 15, 20, 30].map(mins => (
+                  <option key={mins} value={mins}>
+                    {mins} {mins === 1 ? 'minute' : 'minutes'}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {/* Start button */}
+          <Button
+            size="xl"
+            className="w-full"
+            onClick={startSession}
+            disabled={!canStart}
+          >
+            <Play className="w-6 h-6 mr-2" /> Start Mission
+          </Button>
+
+          {!canStart && (
+            <p className="text-center text-red-400 text-sm">
+              Enable at least one mode with operations to start
+            </p>
+          )}
+
+          {/* Mission History */}
+          {missionHistory.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mt-8"
             >
-              <Play className="w-6 h-6 mr-2" /> Start Mission
-            </Button>
-          </motion.div>
-        )}
+              <div className="flex items-center gap-2 mb-4">
+                <History className="w-5 h-5 text-slate-400" />
+                <h3 className="text-lg font-bold text-white">Mission History</h3>
+              </div>
+              <div className="space-y-3 max-h-[500px] overflow-y-auto">
+                {missionHistory.map((mission, i) => (
+                  <motion.button
+                    key={mission.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + i * 0.03 }}
+                    onClick={() => startFromHistory(mission)}
+                    className="w-full p-4 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 text-left transition-colors border border-slate-700"
+                  >
+                    {/* Header row */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        {/* Mode badges */}
+                        {missionUsesSpeedTables(mission.config) && (
+                          <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-medium">
+                            Speed Tables
+                          </span>
+                        )}
+                        {missionUsesMentalMath(mission.config) && (
+                          <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded font-medium">
+                            Mental Math
+                          </span>
+                        )}
+                        {/* Session type */}
+                        <span className="text-xs text-slate-400 bg-slate-700 px-2 py-1 rounded">
+                          {mission.config.mode === 'questions'
+                            ? `${mission.config.questionCount} Questions`
+                            : `${mission.config.timeLimitMinutes} min`
+                          }
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-slate-500">
+                          {formatTimeAgo(mission.timestamp)}
+                        </span>
+                        <Play className="w-5 h-5 text-blue-400" />
+                      </div>
+                    </div>
+
+                    {/* Stats row */}
+                    <div className="flex items-center gap-4 mb-3 text-sm">
+                      <span className="text-emerald-400 font-medium">
+                        {mission.correctAnswers}/{mission.totalQuestions} correct
+                      </span>
+                      {mission.wrongAnswers > 0 && (
+                        <span className="text-red-400">
+                          {mission.wrongAnswers} wrong
+                        </span>
+                      )}
+                      <span className="text-slate-400">
+                        {(mission.avgTimePerQuestion / 1000).toFixed(1)}s avg
+                      </span>
+                      <span className="text-amber-400">
+                        +{mission.totalXp} XP
+                      </span>
+                    </div>
+
+                    {/* Details row - Speed Tables */}
+                    {missionUsesSpeedTables(mission.config) && mission.config.primaryNumbers && (
+                      <div className="flex items-center gap-2 flex-wrap mb-2">
+                        <span className="text-xs text-slate-500">Tables:</span>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {mission.config.primaryNumbers.map(num => (
+                            <span
+                              key={num}
+                              className="text-xs text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded font-medium"
+                            >
+                              {num}
+                            </span>
+                          ))}
+                        </div>
+                        {mission.config.multiplierRanges && mission.config.multiplierRanges.length > 0 && (
+                          <>
+                            <span className="text-xs text-slate-500 ml-2">×</span>
+                            <span className="text-xs text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded">
+                              {mission.config.multiplierRanges[0].min}-{mission.config.multiplierRanges[mission.config.multiplierRanges.length - 1].max}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Details row - Mental Math */}
+                    {missionUsesMentalMath(mission.config) && mission.config.mentalMathOperations && (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs text-slate-500">Mental:</span>
+                        {mission.config.mentalMathOperations.map(op => {
+                          const comboKey = `${op}DigitCombos` as keyof SessionConfig;
+                          const combos = (mission.config[comboKey] as DigitCombo[]) || [];
+                          return (
+                            <span key={op} className="text-xs text-purple-400 bg-purple-500/20 px-2 py-0.5 rounded">
+                              {op === 'multiply' ? '×' : op === 'divide' ? '÷' : op === 'add' ? '+' : '−'}
+                              {' '}
+                              {combos.map(c => c.replace('x', '×')).join(', ')}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </motion.div>
       </main>
     </div>
   );
