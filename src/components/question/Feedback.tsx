@@ -213,6 +213,5 @@ function getCorrectMessage(streak: number): string {
   if (streak >= 7) return 'ON FIRE!';
   if (streak >= 5) return 'AMAZING!';
   if (streak >= 3) return 'GREAT!';
-  const messages = ['Correct!', 'Nice!', 'Good job!', 'Yes!', 'Perfect!'];
-  return messages[Math.floor(Math.random() * messages.length)];
+  return 'Correct!';
 }
