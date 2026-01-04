@@ -335,16 +335,16 @@ function JetTrails({ count, fullScreen = false }: { count: number; fullScreen?: 
 // Get congratulatory message based on rank
 function getCongratMessage(rank: Rank): string {
   const messages: Record<number, string> = {
-    2: "You've earned your wings! Keep climbing, Airman!",
-    3: "Outstanding performance, Corporal! The sky's the limit!",
-    4: "Sergeant! Your math skills are taking off!",
-    5: "Lieutenant! You're becoming a true ace!",
-    6: "Captain! You're leading the squadron now!",
-    7: "Major achievement unlocked! Incredible progress!",
-    8: "Colonel! Your skills are legendary!",
-    9: "Commander! You rule the skies!",
-    10: "General! You've reached elite status!",
-    11: "ACE PILOT! You've mastered the art of math!",
+    2: "You've earned your wings and the classic F-4 Phantom II!",
+    3: "The nimble F-5 Tiger joins your fleet, Corporal!",
+    4: "Sergeant! The legendary F-14 Tomcat is yours!",
+    5: "Lieutenant! You've unlocked the mighty F-15 Eagle!",
+    6: "Captain! The F-16 Fighting Falcon awaits your command!",
+    7: "Major! The versatile F/A-18 Hornet is now in your hangar!",
+    8: "Colonel! The stealth F-22 Raptor is yours to fly!",
+    9: "Commander! You've earned the advanced F-35 Lightning II!",
+    10: "General! Your fleet is complete - all jets unlocked!",
+    11: "ACE PILOT! You've mastered math and earned the Golden Fleet!",
   };
   return messages[rank.level] || "Congratulations on your promotion!";
 }
@@ -352,16 +352,16 @@ function getCongratMessage(rank: Rank): string {
 // Get unlocks for a rank level
 function getUnlocksForRank(level: number): string[] {
   const unlocks: Record<number, string[]> = {
-    2: ['🛩️ Training Jet'],
-    3: ['🎨 Desert Camo'],
-    4: ['✈️ Strike Fighter'],
-    5: ['🎨 Ocean Blue'],
-    6: ['🚀 Supersonic Jet'],
-    7: ['🎨 Stealth Black'],
-    8: ['⚡ Lightning Bolt'],
-    9: ['🎨 Gold Edition'],
-    10: ['👑 General\'s Jet'],
-    11: ['🌟 Ace Pilot Badge', '✨ All Unlocks'],
+    2: ['🛩️ F-4 Phantom II'],
+    3: ['🛩️ F-5 Tiger'],
+    4: ['✈️ F-14 Tomcat'],
+    5: ['✈️ F-15 Eagle'],
+    6: ['🚀 F-16 Fighting Falcon'],
+    7: ['🚀 F/A-18 Hornet'],
+    8: ['⚡ F-22 Raptor'],
+    9: ['⚡ F-35 Lightning II'],
+    10: ['👑 All Jets Unlocked'],
+    11: ['🌟 Ace Pilot Badge', '✨ Golden Fleet'],
   };
   return unlocks[level] || [];
 }
