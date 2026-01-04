@@ -273,14 +273,46 @@ export function HomePage() {
             Configure Your Mission
           </h2>
 
+          {/* Difficulty Selection - Prominent at top */}
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            {(['easy', 'medium', 'crazy'] as Difficulty[]).map(diff => (
+              <button
+                key={diff}
+                onClick={() => setConfig(c => ({ ...c, difficulty: diff }))}
+                title={
+                  diff === 'easy'
+                    ? 'Easy: More time to answer (2x). Dogfights cost 15 XP.'
+                    : diff === 'medium'
+                    ? 'Medium: Standard timing (1.5x). Dogfights cost 30 XP.'
+                    : 'Crazy: Fastest timing. Dogfights cost 45 XP. For experts!'
+                }
+                className={`p-3 rounded-xl font-bold transition-colors ${
+                  config.difficulty === diff
+                    ? diff === 'easy'
+                      ? 'bg-emerald-600 text-white'
+                      : diff === 'medium'
+                      ? 'bg-amber-600 text-white'
+                      : 'bg-red-600 text-white'
+                    : 'bg-slate-700 text-slate-400'
+                }`}
+              >
+                {diff === 'easy' && '😊 '}
+                {diff === 'medium' && '💪 '}
+                {diff === 'crazy' && '🔥 '}
+                {DIFFICULTY_LABELS[diff]}
+              </button>
+            ))}
+          </div>
+
           {/* Speed Times Tables Section */}
           <div className={`bg-slate-800/50 rounded-2xl border overflow-hidden ${config.speedTimesTablesEnabled ? 'border-blue-500/50' : 'border-slate-700'}`}>
-            <div className="p-4 flex items-center gap-3">
+            <div className="p-4 flex items-center gap-3" title="Memorize multiplication and division facts with spaced repetition">
               <input
                 type="checkbox"
                 checked={config.speedTimesTablesEnabled}
                 onChange={() => setConfig(c => ({ ...c, speedTimesTablesEnabled: !c.speedTimesTablesEnabled }))}
                 className="w-5 h-5 rounded accent-blue-500"
+                title="Enable Speed Times Tables practice"
               />
               <div>
                 <h3 className="text-white font-bold text-lg">Speed Times Tables</h3>
@@ -298,6 +330,7 @@ export function HomePage() {
                       key={op}
                       onClick={() => toggleSpeedOperation(op)}
                       disabled={!config.speedTimesTablesEnabled}
+                      title={op === 'multiply' ? 'Practice multiplication (e.g., 7 × 8 = ?)' : 'Practice division (e.g., 56 ÷ 7 = ?)'}
                       className={`flex-1 p-2 rounded-lg font-medium transition-colors ${
                         config.speedOperations.includes(op)
                           ? 'bg-blue-600 text-white'
@@ -319,6 +352,7 @@ export function HomePage() {
                       key={num}
                       onClick={() => togglePrimaryNumber(num)}
                       disabled={!config.speedTimesTablesEnabled}
+                      title={`Practice the ${num} times table (${num}×1, ${num}×2, ...)`}
                       className={`p-2 rounded-lg font-bold transition-colors ${
                         config.primaryNumbers.includes(num)
                           ? 'bg-amber-500 text-white'
@@ -336,10 +370,10 @@ export function HomePage() {
                 <h4 className="text-slate-300 text-sm font-medium mb-2">Multiply By</h4>
                 <div className="grid grid-cols-4 gap-2">
                   {[
-                    { label: '1-5', min: 1, max: 5 },
-                    { label: '6-10', min: 6, max: 10 },
-                    { label: '11-15', min: 11, max: 15 },
-                    { label: '16-20', min: 16, max: 20 },
+                    { label: '1-5', min: 1, max: 5, desc: 'Easier: multiply by 1, 2, 3, 4, or 5' },
+                    { label: '6-10', min: 6, max: 10, desc: 'Standard: multiply by 6, 7, 8, 9, or 10' },
+                    { label: '11-15', min: 11, max: 15, desc: 'Harder: multiply by 11, 12, 13, 14, or 15' },
+                    { label: '16-20', min: 16, max: 20, desc: 'Challenge: multiply by 16, 17, 18, 19, or 20' },
                   ].map(range => {
                     const isSelected = config.multiplierRanges.some(
                       r => r.min === range.min && r.max === range.max
@@ -348,6 +382,7 @@ export function HomePage() {
                       <button
                         key={range.label}
                         disabled={!config.speedTimesTablesEnabled}
+                        title={range.desc}
                         onClick={() => {
                           setConfig(c => {
                             const existing = c.multiplierRanges.find(
@@ -385,12 +420,13 @@ export function HomePage() {
 
           {/* General Mental Math Section */}
           <div className={`bg-slate-800/50 rounded-2xl border overflow-hidden ${config.generalMentalMathEnabled ? 'border-purple-500/50' : 'border-slate-700'}`}>
-            <div className="p-4 flex items-center gap-3">
+            <div className="p-4 flex items-center gap-3" title="Practice mental math techniques with multi-digit numbers">
               <input
                 type="checkbox"
                 checked={config.generalMentalMathEnabled}
                 onChange={() => setConfig(c => ({ ...c, generalMentalMathEnabled: !c.generalMentalMathEnabled }))}
                 className="w-5 h-5 rounded accent-purple-500"
+                title="Enable General Mental Math practice"
               />
               <div>
                 <h3 className="text-white font-bold text-lg">General Mental Math</h3>
@@ -404,6 +440,12 @@ export function HomePage() {
                 const isEnabled = config.mentalMathOperations.includes(op);
                 const comboKey = `${op}DigitCombos` as keyof SessionConfig;
                 const combos = (config[comboKey] as DigitCombo[]) || [];
+                const opDesc = {
+                  add: 'Practice adding numbers mentally',
+                  subtract: 'Practice subtracting numbers mentally',
+                  multiply: 'Practice multiplying multi-digit numbers',
+                  divide: 'Practice dividing numbers mentally',
+                }[op];
 
                 return (
                   <div key={op} className="bg-slate-700/50 rounded-xl p-3">
@@ -414,8 +456,12 @@ export function HomePage() {
                         onChange={() => toggleMentalMathOperation(op)}
                         disabled={!config.generalMentalMathEnabled}
                         className="w-4 h-4 rounded accent-purple-500"
+                        title={opDesc}
                       />
-                      <span className={`font-medium ${isEnabled && config.generalMentalMathEnabled ? 'text-white' : 'text-slate-500'}`}>
+                      <span
+                        className={`font-medium ${isEnabled && config.generalMentalMathEnabled ? 'text-white' : 'text-slate-500'}`}
+                        title={opDesc}
+                      >
                         {op === 'multiply' && '× Multiplication'}
                         {op === 'divide' && '÷ Division'}
                         {op === 'add' && '+ Addition'}
@@ -424,20 +470,27 @@ export function HomePage() {
                     </div>
 
                     <div className={`flex flex-wrap gap-2 ml-7 ${!isEnabled ? 'opacity-50' : ''}`}>
-                      {DIGIT_COMBOS.map(combo => (
-                        <button
-                          key={combo}
-                          onClick={() => toggleDigitCombo(op, combo)}
-                          disabled={!config.generalMentalMathEnabled || !isEnabled}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                            combos.includes(combo)
-                              ? 'bg-purple-600 text-white'
-                              : 'bg-slate-600 text-slate-400'
-                          } ${(!config.generalMentalMathEnabled || !isEnabled) ? 'cursor-not-allowed' : ''}`}
-                        >
-                          {combo.replace('x', '×')}
-                        </button>
-                      ))}
+                      {DIGIT_COMBOS.map(combo => {
+                        const [d1, d2] = combo.split('x').map(Number);
+                        const example1 = d1 === 1 ? '5' : d1 === 2 ? '42' : '358';
+                        const example2 = d2 === 1 ? '7' : d2 === 2 ? '23' : '156';
+                        const comboDesc = `${d1}-digit × ${d2}-digit (e.g., ${example1} ${op === 'add' ? '+' : op === 'subtract' ? '−' : op === 'multiply' ? '×' : '÷'} ${example2})`;
+                        return (
+                          <button
+                            key={combo}
+                            onClick={() => toggleDigitCombo(op, combo)}
+                            disabled={!config.generalMentalMathEnabled || !isEnabled}
+                            title={comboDesc}
+                            className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                              combos.includes(combo)
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-slate-600 text-slate-400'
+                            } ${(!config.generalMentalMathEnabled || !isEnabled) ? 'cursor-not-allowed' : ''}`}
+                          >
+                            {combo.replace('x', '×')}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 );
@@ -449,37 +502,11 @@ export function HomePage() {
           <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700">
             <h3 className="text-white font-bold mb-3">Session Settings</h3>
 
-            {/* Difficulty Selection */}
-            <div className="mb-4">
-              <h4 className="text-slate-300 text-sm font-medium mb-2">Difficulty</h4>
-              <div className="grid grid-cols-3 gap-2">
-                {(['easy', 'medium', 'crazy'] as Difficulty[]).map(diff => (
-                  <button
-                    key={diff}
-                    onClick={() => setConfig(c => ({ ...c, difficulty: diff }))}
-                    className={`p-3 rounded-xl font-bold transition-colors ${
-                      config.difficulty === diff
-                        ? diff === 'easy'
-                          ? 'bg-emerald-600 text-white'
-                          : diff === 'medium'
-                          ? 'bg-amber-600 text-white'
-                          : 'bg-red-600 text-white'
-                        : 'bg-slate-700 text-slate-400'
-                    }`}
-                  >
-                    {diff === 'easy' && '😊 '}
-                    {diff === 'medium' && '💪 '}
-                    {diff === 'crazy' && '🔥 '}
-                    {DIFFICULTY_LABELS[diff]}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Mode Selection */}
             <div className="grid grid-cols-2 gap-2 mb-4">
               <button
                 onClick={() => setConfig(c => ({ ...c, mode: 'questions' }))}
+                title="Practice a fixed number of questions"
                 className={`p-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
                   config.mode === 'questions'
                     ? 'bg-blue-600 text-white'
@@ -490,6 +517,7 @@ export function HomePage() {
               </button>
               <button
                 onClick={() => setConfig(c => ({ ...c, mode: 'time' }))}
+                title="Practice for a set amount of time"
                 className={`p-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
                   config.mode === 'time'
                     ? 'bg-blue-600 text-white'
@@ -506,6 +534,7 @@ export function HomePage() {
                   <button
                     key={count}
                     onClick={() => setConfig(c => ({ ...c, questionCount: count }))}
+                    title={`Complete ${count} questions in this session`}
                     className={`p-2 rounded-lg font-medium transition-colors ${
                       config.questionCount === count
                         ? 'bg-amber-500 text-white'
@@ -522,6 +551,7 @@ export function HomePage() {
               <select
                 value={config.timeLimitMinutes || 5}
                 onChange={(e) => setConfig(c => ({ ...c, timeLimitMinutes: parseInt(e.target.value) }))}
+                title="Choose how long to practice"
                 className="w-full p-3 rounded-xl bg-slate-700 text-white font-medium border border-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
               >
                 {[1, 2, 3, 5, 10, 15, 20, 30].map(mins => (
