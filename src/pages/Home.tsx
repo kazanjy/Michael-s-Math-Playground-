@@ -400,7 +400,7 @@ export function HomePage() {
 
             <div className={`px-4 pb-4 space-y-4 ${!config.generalMentalMathEnabled ? 'opacity-50' : ''}`}>
               {/* Operations with digit combos */}
-              {(['multiply', 'divide', 'add', 'subtract'] as Operation[]).map(op => {
+              {(['add', 'subtract', 'multiply', 'divide'] as Operation[]).map(op => {
                 const isEnabled = config.mentalMathOperations.includes(op);
                 const comboKey = `${op}DigitCombos` as keyof SessionConfig;
                 const combos = (config[comboKey] as DigitCombo[]) || [];
