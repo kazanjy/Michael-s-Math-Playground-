@@ -605,6 +605,18 @@ export function HomePage() {
                     {/* Header row */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
+                        {/* Difficulty badge */}
+                        <span className={`text-xs px-2 py-1 rounded font-medium ${
+                          mission.config.difficulty === 'easy'
+                            ? 'bg-emerald-500/20 text-emerald-400'
+                            : mission.config.difficulty === 'crazy'
+                            ? 'bg-red-500/20 text-red-400'
+                            : 'bg-amber-500/20 text-amber-400'
+                        }`}>
+                          {mission.config.difficulty === 'easy' && '😊 Easy'}
+                          {mission.config.difficulty === 'medium' && '💪 Medium'}
+                          {mission.config.difficulty === 'crazy' && '🔥 Crazy'}
+                        </span>
                         {/* Mode badges */}
                         {missionUsesSpeedTables(mission.config) && (
                           <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-medium">
