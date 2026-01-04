@@ -344,7 +344,7 @@ export function PracticePage() {
           setFeedback(null);
           // Trigger dogfight for slow answer
           setJetResources(currentResources => {
-            const { updatedResources, result } = processDogfight(currentResources);
+            const { updatedResources, result } = processDogfight(currentResources, 'slow_answer');
             setDogfightResult(result);
 
             // Update resource stats
@@ -424,7 +424,7 @@ export function PracticePage() {
           setFeedback(null);
           // Trigger dogfight for wrong answer
           setJetResources(currentResources => {
-            const { updatedResources, result } = processDogfight(currentResources);
+            const { updatedResources, result } = processDogfight(currentResources, 'wrong_answer');
             setDogfightResult(result);
 
             // Update resource stats

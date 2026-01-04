@@ -147,7 +147,9 @@ export function DogfightOverlay({ result, onComplete }: DogfightOverlayProps) {
             className="absolute top-4 left-0 right-0 text-center"
           >
             <h2 className="text-2xl font-bold text-white drop-shadow-lg">
-              ⚔️ DOGFIGHT! ⚔️
+              {result.trigger === 'slow_answer'
+                ? '🐢 Slow Answer Dogfight! 🐢'
+                : '❌ Wrong Answer Dogfight! ❌'}
             </h2>
             <p className="text-sm text-white/80 mt-1">
               vs {result.enemyType}

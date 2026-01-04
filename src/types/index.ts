@@ -217,9 +217,13 @@ export const RESOURCE_CONFIG = {
   chaffPerFight: 1,
 };
 
+// Dogfight trigger reasons
+export type DogfightTrigger = 'wrong_answer' | 'slow_answer';
+
 // Dogfight result
 export interface DogfightResult {
   occurred: boolean;
+  trigger: DogfightTrigger;
   enemyType: string;
   missilesUsed: number;
   bulletsUsed: number;
