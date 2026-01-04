@@ -21,7 +21,7 @@ import {
   createEmptyResourceStats,
 } from '../lib/jetResources';
 import type { SessionConfig, Question, Answer, Rank, JetResources, DogfightResult, SessionResourceStats } from '../types';
-import { TIME_THRESHOLDS } from '../types';
+import { TIME_THRESHOLDS, createDefaultSessionConfig } from '../types';
 
 type FeedbackState = {
   isCorrect: boolean;
@@ -40,22 +40,19 @@ export function PracticePage() {
   const navigate = useNavigate();
   const { currentChild, updateChildXp } = useAuth();
 
-  // Load config from sessionStorage
+  // Load config from sessionStorage, merging with defaults for backwards compatibility
   const [config] = useState<SessionConfig>(() => {
+    const defaults = createDefaultSessionConfig();
     const stored = sessionStorage.getItem('sessionConfig');
     if (stored) {
-      return JSON.parse(stored);
+      try {
+        const parsed = JSON.parse(stored);
+        return { ...defaults, ...parsed };
+      } catch {
+        return defaults;
+      }
     }
-    // Default config
-    return {
-      operations: ['multiply'],
-      primaryNumbers: [2, 3, 4, 5],
-      multiplierRanges: [{ min: 1, max: 10 }],
-      addend1Digits: 1,
-      addend2Digits: 1,
-      mode: 'questions',
-      questionCount: 20,
-    };
+    return defaults;
   });
 
   // Session state - use spaced repetition if we have a child profile
