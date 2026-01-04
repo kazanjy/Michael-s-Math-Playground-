@@ -292,7 +292,7 @@ export function HomePage() {
                   <History className="w-5 h-5 text-slate-400" />
                   <h3 className="text-lg font-bold text-white">Recent Missions</h3>
                 </div>
-                <div className="space-y-2 max-h-80 overflow-y-auto">
+                <div className="space-y-2 max-h-96 overflow-y-auto">
                   {missionHistory.map((mission, i) => (
                     <motion.button
                       key={mission.id}
@@ -302,10 +302,11 @@ export function HomePage() {
                       onClick={() => startFromHistory(mission)}
                       className="w-full p-3 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 text-left transition-colors border border-slate-700"
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
+                      {/* Top row: Operations, session type, time ago, play button */}
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
                           {/* Operation icons */}
-                          <span className="text-sm">
+                          <span className="text-base font-medium text-white">
                             {mission.config.operations.map(op => {
                               if (op === 'multiply') return '×';
                               if (op === 'divide') return '÷';
@@ -314,47 +315,59 @@ export function HomePage() {
                               return '';
                             }).join(' ')}
                           </span>
-                          {/* Tables */}
-                          {(mission.config.operations.includes('multiply') || mission.config.operations.includes('divide')) && (
-                            <span className="text-xs text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded">
-                              {mission.config.primaryNumbers.length <= 3
-                                ? mission.config.primaryNumbers.join(', ')
-                                : `${mission.config.primaryNumbers.slice(0, 2).join(', ')}... (${mission.config.primaryNumbers.length})`
-                              }
+                          {/* Session type */}
+                          <span className="text-xs text-slate-400 bg-slate-700 px-2 py-0.5 rounded">
+                            {mission.config.mode === 'questions'
+                              ? `${mission.config.questionCount} Q`
+                              : `${mission.config.timeLimitMinutes}m`
+                            }
+                          </span>
+                          {/* Results */}
+                          <span className="text-xs text-emerald-400">
+                            {mission.correctAnswers}/{mission.totalQuestions} ✓
+                          </span>
+                          {mission.wrongAnswers > 0 && (
+                            <span className="text-xs text-red-400">
+                              {mission.wrongAnswers} ✗
                             </span>
                           )}
+                          <span className="text-xs text-slate-500">
+                            {(mission.avgTimePerQuestion / 1000).toFixed(1)}s avg
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-slate-500">
+                            {formatTimeAgo(mission.timestamp)}
+                          </span>
+                          <Play className="w-4 h-4 text-blue-400" />
+                        </div>
+                      </div>
+                      {/* Bottom row: Tables and multiplier - full width */}
+                      {(mission.config.operations.includes('multiply') || mission.config.operations.includes('divide')) && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* Tables - show all numbers */}
+                          <span className="text-xs text-amber-400">Tables:</span>
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {mission.config.primaryNumbers.map(num => (
+                              <span
+                                key={num}
+                                className="text-xs text-amber-400 bg-amber-500/20 px-1.5 py-0.5 rounded font-medium"
+                              >
+                                {num}
+                              </span>
+                            ))}
+                          </div>
                           {/* Multiplier range */}
                           {mission.config.multiplierRanges && mission.config.multiplierRanges.length > 0 && (
-                            <span className="text-xs text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded">
-                              ×{mission.config.multiplierRanges[0].min}-{mission.config.multiplierRanges[mission.config.multiplierRanges.length - 1].max}
-                            </span>
+                            <>
+                              <span className="text-xs text-slate-500 ml-2">×</span>
+                              <span className="text-xs text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded">
+                                {mission.config.multiplierRanges[0].min}-{mission.config.multiplierRanges[mission.config.multiplierRanges.length - 1].max}
+                              </span>
+                            </>
                           )}
                         </div>
-                        <Play className="w-4 h-4 text-slate-500" />
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-slate-400">
-                        {/* Session type */}
-                        <span>
-                          {mission.config.mode === 'questions'
-                            ? `${mission.config.questionCount} Q`
-                            : `${mission.config.timeLimitMinutes}m`
-                          }
-                        </span>
-                        {/* Results */}
-                        <span className="text-emerald-400">
-                          {mission.correctAnswers}/{mission.totalQuestions} ✓
-                        </span>
-                        <span className="text-red-400">
-                          {mission.wrongAnswers} ✗
-                        </span>
-                        <span>
-                          {(mission.avgTimePerQuestion / 1000).toFixed(1)}s avg
-                        </span>
-                        {/* Time ago */}
-                        <span className="ml-auto text-slate-500">
-                          {formatTimeAgo(mission.timestamp)}
-                        </span>
-                      </div>
+                      )}
                     </motion.button>
                   ))}
                 </div>
