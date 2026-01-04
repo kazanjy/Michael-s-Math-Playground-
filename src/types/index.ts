@@ -45,52 +45,52 @@ export interface Rank {
 export const RANKS: Rank[] = [
   // Levels 1-3: Training Phase → T-38 Talon
   { level: 1, name: 'Cadet', title: 'Cadet', xpRequired: 0, icon: '🎖️', jet: 'T-38 Talon', jetIcon: '🛩️' },
-  { level: 2, name: 'Senior Cadet', title: 'Senior Cadet', xpRequired: 50, icon: '🎖️', jet: 'T-38 Talon', jetIcon: '🛩️' },
-  { level: 3, name: 'Lead Cadet', title: 'Lead Cadet', xpRequired: 120, icon: '🎖️', jet: 'T-38 Talon', jetIcon: '🛩️' },
+  { level: 2, name: 'Senior Cadet', title: 'Senior Cadet', xpRequired: 50, icon: '🎖️🎖️', jet: 'T-38 Talon', jetIcon: '🛩️' },
+  { level: 3, name: 'Lead Cadet', title: 'Lead Cadet', xpRequired: 120, icon: '🎖️🎖️🎖️', jet: 'T-38 Talon', jetIcon: '🛩️' },
 
   // Levels 4-6: Basic Enlisted → F-4 Phantom
   { level: 4, name: 'Airman', title: 'Airman', xpRequired: 200, icon: '🪖', jet: 'F-4 Phantom', jetIcon: '✈️' },
-  { level: 5, name: 'Airman 1st Class', title: 'Airman 1st Class', xpRequired: 300, icon: '🪖', jet: 'F-4 Phantom', jetIcon: '✈️' },
-  { level: 6, name: 'Senior Airman', title: 'Senior Airman', xpRequired: 425, icon: '🪖', jet: 'F-4 Phantom', jetIcon: '✈️' },
+  { level: 5, name: 'Airman 1st Class', title: 'Airman 1st Class', xpRequired: 300, icon: '🪖⭐', jet: 'F-4 Phantom', jetIcon: '✈️' },
+  { level: 6, name: 'Senior Airman', title: 'Senior Airman', xpRequired: 425, icon: '🪖⭐⭐', jet: 'F-4 Phantom', jetIcon: '✈️' },
 
   // Levels 7-9: NCO → F-5 Tiger
-  { level: 7, name: 'Corporal', title: 'Corporal', xpRequired: 575, icon: '⭐', jet: 'F-5 Tiger', jetIcon: '🐯' },
-  { level: 8, name: 'Sergeant', title: 'Sergeant', xpRequired: 750, icon: '⭐', jet: 'F-5 Tiger', jetIcon: '🐯' },
-  { level: 9, name: 'Staff Sergeant', title: 'Staff Sergeant', xpRequired: 950, icon: '⭐⭐', jet: 'F-5 Tiger', jetIcon: '🐯' },
+  { level: 7, name: 'Corporal', title: 'Corporal', xpRequired: 575, icon: '💎', jet: 'F-5 Tiger', jetIcon: '🐯' },
+  { level: 8, name: 'Sergeant', title: 'Sergeant', xpRequired: 750, icon: '💎💎', jet: 'F-5 Tiger', jetIcon: '🐯' },
+  { level: 9, name: 'Staff Sergeant', title: 'Staff Sergeant', xpRequired: 950, icon: '💎💎💎', jet: 'F-5 Tiger', jetIcon: '🐯' },
 
   // Levels 10-12: Senior NCO → F-14 Tomcat
-  { level: 10, name: 'Tech Sergeant', title: 'Tech Sergeant', xpRequired: 1175, icon: '⭐⭐', jet: 'F-14 Tomcat', jetIcon: '🐱' },
-  { level: 11, name: 'Master Sergeant', title: 'Master Sergeant', xpRequired: 1425, icon: '⭐⭐⭐', jet: 'F-14 Tomcat', jetIcon: '🐱' },
-  { level: 12, name: 'Chief Master Sergeant', title: 'Chief Master Sgt', xpRequired: 1700, icon: '⭐⭐⭐', jet: 'F-14 Tomcat', jetIcon: '🐱' },
+  { level: 10, name: 'Tech Sergeant', title: 'Tech Sergeant', xpRequired: 1175, icon: '🔷', jet: 'F-14 Tomcat', jetIcon: '🐱' },
+  { level: 11, name: 'Master Sergeant', title: 'Master Sergeant', xpRequired: 1425, icon: '🔷🔷', jet: 'F-14 Tomcat', jetIcon: '🐱' },
+  { level: 12, name: 'Chief Master Sergeant', title: 'Chief Master Sgt', xpRequired: 1700, icon: '🔷🔷🔷', jet: 'F-14 Tomcat', jetIcon: '🐱' },
 
   // Levels 13-15: Junior Officer → F-15 Eagle
   { level: 13, name: '2nd Lieutenant', title: '2nd Lieutenant', xpRequired: 2000, icon: '🎗️', jet: 'F-15 Eagle', jetIcon: '🦅' },
-  { level: 14, name: '1st Lieutenant', title: '1st Lieutenant', xpRequired: 2350, icon: '🎗️', jet: 'F-15 Eagle', jetIcon: '🦅' },
-  { level: 15, name: 'Senior Lieutenant', title: 'Senior Lieutenant', xpRequired: 2750, icon: '🎗️', jet: 'F-15 Eagle', jetIcon: '🦅' },
+  { level: 14, name: '1st Lieutenant', title: '1st Lieutenant', xpRequired: 2350, icon: '🎗️🎗️', jet: 'F-15 Eagle', jetIcon: '🦅' },
+  { level: 15, name: 'Senior Lieutenant', title: 'Senior Lieutenant', xpRequired: 2750, icon: '🎗️🎗️🎗️', jet: 'F-15 Eagle', jetIcon: '🦅' },
 
   // Levels 16-18: Field Officer → F-16 Falcon
   { level: 16, name: 'Captain', title: 'Captain', xpRequired: 3200, icon: '🏅', jet: 'F-16 Falcon', jetIcon: '🦅' },
-  { level: 17, name: 'Major', title: 'Major', xpRequired: 3700, icon: '🏅', jet: 'F-16 Falcon', jetIcon: '🦅' },
-  { level: 18, name: 'Lieutenant Colonel', title: 'Lt. Colonel', xpRequired: 4250, icon: '🏅', jet: 'F-16 Falcon', jetIcon: '🦅' },
+  { level: 17, name: 'Major', title: 'Major', xpRequired: 3700, icon: '🏅🏅', jet: 'F-16 Falcon', jetIcon: '🦅' },
+  { level: 18, name: 'Lieutenant Colonel', title: 'Lt. Colonel', xpRequired: 4250, icon: '🏅🏅🏅', jet: 'F-16 Falcon', jetIcon: '🦅' },
 
   // Levels 19-21: Senior Officer → F/A-18 Hornet
-  { level: 19, name: 'Colonel', title: 'Colonel', xpRequired: 4900, icon: '🎖️⭐', jet: 'F/A-18 Hornet', jetIcon: '🐝' },
-  { level: 20, name: 'Senior Colonel', title: 'Senior Colonel', xpRequired: 5600, icon: '🎖️⭐', jet: 'F/A-18 Hornet', jetIcon: '🐝' },
-  { level: 21, name: 'Brigadier General', title: 'Brigadier General', xpRequired: 6400, icon: '🦅', jet: 'F/A-18 Hornet', jetIcon: '🐝' },
+  { level: 19, name: 'Colonel', title: 'Colonel', xpRequired: 4900, icon: '⭐', jet: 'F/A-18 Hornet', jetIcon: '🐝' },
+  { level: 20, name: 'Senior Colonel', title: 'Senior Colonel', xpRequired: 5600, icon: '⭐⭐', jet: 'F/A-18 Hornet', jetIcon: '🐝' },
+  { level: 21, name: 'Brigadier General', title: 'Brigadier General', xpRequired: 6400, icon: '⭐⭐⭐', jet: 'F/A-18 Hornet', jetIcon: '🐝' },
 
   // Levels 22-24: General Officer → F-22 Raptor
   { level: 22, name: 'Major General', title: 'Major General', xpRequired: 7300, icon: '🦅', jet: 'F-22 Raptor', jetIcon: '⚡' },
-  { level: 23, name: 'Lieutenant General', title: 'Lt. General', xpRequired: 8300, icon: '🦅', jet: 'F-22 Raptor', jetIcon: '⚡' },
-  { level: 24, name: 'General', title: 'General', xpRequired: 9500, icon: '⚔️', jet: 'F-22 Raptor', jetIcon: '⚡' },
+  { level: 23, name: 'Lieutenant General', title: 'Lt. General', xpRequired: 8300, icon: '🦅⭐', jet: 'F-22 Raptor', jetIcon: '⚡' },
+  { level: 24, name: 'General', title: 'General', xpRequired: 9500, icon: '🦅⭐⭐', jet: 'F-22 Raptor', jetIcon: '⚡' },
 
   // Levels 25-27: Command → F-35 Lightning
   { level: 25, name: 'Air Marshal', title: 'Air Marshal', xpRequired: 10900, icon: '⚔️', jet: 'F-35 Lightning', jetIcon: '⚡' },
-  { level: 26, name: 'Sky Marshal', title: 'Sky Marshal', xpRequired: 12500, icon: '👑', jet: 'F-35 Lightning', jetIcon: '⚡' },
+  { level: 26, name: 'Sky Marshal', title: 'Sky Marshal', xpRequired: 12500, icon: '⚔️⚔️', jet: 'F-35 Lightning', jetIcon: '⚡' },
   { level: 27, name: 'Supreme Commander', title: 'Supreme Commander', xpRequired: 14300, icon: '👑', jet: 'F-35 Lightning', jetIcon: '⚡' },
 
   // Levels 28-30: Legendary → SR-71 Blackbird & X-15
   { level: 28, name: 'Ace Pilot', title: 'Ace Pilot', xpRequired: 16500, icon: '🏆', jet: 'SR-71 Blackbird', jetIcon: '🦇' },
-  { level: 29, name: 'Top Gun', title: 'Top Gun', xpRequired: 19000, icon: '🏆', jet: 'SR-71 Blackbird', jetIcon: '🦇' },
+  { level: 29, name: 'Top Gun', title: 'Top Gun', xpRequired: 19000, icon: '🏆⭐', jet: 'SR-71 Blackbird', jetIcon: '🦇' },
   { level: 30, name: 'Living Legend', title: 'Living Legend ★', xpRequired: 22000, icon: '🏆👑', jet: 'X-15 Rocket Plane', jetIcon: '🚀' },
 ];
 

@@ -214,6 +214,7 @@ export function HomePage() {
           >
             <div className="text-center">
               <span className="text-slate-400 text-sm">Current Jet: </span>
+              <span className="text-2xl mr-2">{xpProgress.currentRank.jetIcon}</span>
               <span className="text-white font-bold">{xpProgress.currentRank.jet}</span>
             </div>
           </motion.div>
