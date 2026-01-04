@@ -97,6 +97,7 @@ function generateMultiplicationQuestion(config: SessionConfig, childId?: string)
     operand2: multiplier,
     correctAnswer: answer,
     displayString: `${primary} × ${multiplier}`,
+    source: 'speed',
   };
 }
 
@@ -141,6 +142,7 @@ function generateDivisionQuestion(config: SessionConfig, childId?: string): Ques
     operand2: primary,
     correctAnswer: multiplier,
     displayString: `${dividend} ÷ ${primary}`,
+    source: 'speed',
   };
 }
 
@@ -164,6 +166,7 @@ function generateMentalMultiplyQuestion(combos: DigitCombo[]): Question {
     operand2,
     correctAnswer: answer,
     displayString: `${operand1} × ${operand2}`,
+    source: 'mental',
   };
 }
 
@@ -184,6 +187,7 @@ function generateMentalDivideQuestion(combos: DigitCombo[]): Question {
     operand2: divisor,
     correctAnswer: quotient,
     displayString: `${dividend} ÷ ${divisor}`,
+    source: 'mental',
   };
 }
 
@@ -202,6 +206,7 @@ function generateMentalAddQuestion(combos: DigitCombo[]): Question {
     operand2,
     correctAnswer: answer,
     displayString: `${operand1} + ${operand2}`,
+    source: 'mental',
   };
 }
 
@@ -226,6 +231,7 @@ function generateMentalSubtractQuestion(combos: DigitCombo[]): Question {
     operand2,
     correctAnswer: answer,
     displayString: `${operand1} − ${operand2}`,
+    source: 'mental',
   };
 }
 

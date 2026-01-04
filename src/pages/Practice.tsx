@@ -21,7 +21,7 @@ import {
   createEmptyResourceStats,
 } from '../lib/jetResources';
 import type { SessionConfig, Question, Answer, Rank, JetResources, DogfightResult, SessionResourceStats } from '../types';
-import { TIME_THRESHOLDS, createDefaultSessionConfig } from '../types';
+import { getSlowThreshold, createDefaultSessionConfig } from '../types';
 
 type FeedbackState = {
   isCorrect: boolean;
@@ -268,7 +268,8 @@ export function PracticePage() {
 
       // Check if this correct answer was slow (needs review later)
       // Only add if: slow, not already a review, AND no wrong attempts (wrong attempts already added it)
-      const needsReview = responseTime > TIME_THRESHOLDS.learning; // > 5 seconds
+      const slowThreshold = getSlowThreshold(currentQuestion.source);
+      const needsReview = responseTime > slowThreshold; // > 5s for speed, > 10s for mental
       if (needsReview && !isReviewQuestion && attempts === 0) {
         // Add to review queue - show again after 2-3 more questions
         const showAfter = answers.length + 3;
@@ -334,8 +335,8 @@ export function PracticePage() {
       // Calculate new answers length now (before setTimeout) to avoid stale closure
       const newAnswersLength = answers.length + 1;
 
-      // Trigger dogfight if answer was slow (> 5 seconds)
-      const wasSlowAnswer = responseTime > TIME_THRESHOLDS.learning;
+      // Trigger dogfight if answer was slow (> threshold based on question type)
+      const wasSlowAnswer = responseTime > slowThreshold;
       if (wasSlowAnswer) {
         // Store the action to run when user dismisses dogfight
         dogfightCompleteAction.current = () => {

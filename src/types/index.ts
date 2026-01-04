@@ -123,6 +123,9 @@ export interface SessionConfig {
   timeLimitMinutes?: number;
 }
 
+// Question source type
+export type QuestionSource = 'speed' | 'mental';
+
 // Question types
 export interface Question {
   id: string;
@@ -131,6 +134,7 @@ export interface Question {
   operand2: number;
   correctAnswer: number;
   displayString: string;
+  source: QuestionSource; // Where the question came from
 }
 
 // Answer tracking
@@ -252,10 +256,24 @@ export const XP_CONFIG = {
 
 // Response time thresholds (ms)
 export const TIME_THRESHOLDS = {
-  mastered: 2000,      // Under 2 seconds = mastered
-  learning: 5000,      // 2-5 seconds = learning
-  // Over 5 seconds = needs work
+  // Speed Times Tables thresholds
+  speed: {
+    mastered: 2000,      // Under 2 seconds = mastered
+    learning: 5000,      // 2-5 seconds = learning
+    // Over 5 seconds = needs work / triggers dogfight
+  },
+  // General Mental Math thresholds (more time allowed for multi-digit)
+  mental: {
+    mastered: 5000,      // Under 5 seconds = mastered
+    learning: 10000,     // 5-10 seconds = learning
+    // Over 10 seconds = needs work / triggers dogfight
+  },
 };
+
+// Helper to get threshold for a question source
+export function getSlowThreshold(source: QuestionSource): number {
+  return TIME_THRESHOLDS[source].learning;
+}
 
 // Jet resources (ammunition and countermeasures)
 export interface JetResources {

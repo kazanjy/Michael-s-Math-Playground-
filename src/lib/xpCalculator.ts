@@ -1,5 +1,5 @@
 import { XP_CONFIG, TIME_THRESHOLDS, RANKS } from '../types';
-import type { Question, Rank } from '../types';
+import type { Question, Rank, QuestionSource } from '../types';
 import { calculateDifficulty } from './questionGenerator';
 
 export interface XPResult {
@@ -8,6 +8,11 @@ export interface XPResult {
   streakBonus: number;
   difficultyBonus: number;
   totalXp: number;
+}
+
+// Get mastered threshold based on question source
+function getMasteredThreshold(source: QuestionSource): number {
+  return TIME_THRESHOLDS[source].mastered;
 }
 
 export function calculateXP(
@@ -28,8 +33,9 @@ export function calculateXP(
 
   const baseXp = XP_CONFIG.baseCorrect;
 
-  // Speed bonus: under 2 seconds
-  const speedBonus = responseTimeMs < TIME_THRESHOLDS.mastered
+  // Speed bonus: under mastered threshold (2s for speed, 5s for mental)
+  const masteredThreshold = getMasteredThreshold(question.source);
+  const speedBonus = responseTimeMs < masteredThreshold
     ? XP_CONFIG.speedBonus
     : 0;
 

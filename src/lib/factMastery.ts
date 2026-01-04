@@ -44,13 +44,15 @@ function calculateMasteryScore(
 
   // Speed component (0 to 0.5)
   // Under 2s = full speed score, 2-5s = partial, over 5s = 0
+  // Note: Fact mastery is only used for Speed Times Tables, so use speed thresholds
+  const thresholds = TIME_THRESHOLDS.speed;
   let speedScore = 0;
-  if (avgResponseTime <= TIME_THRESHOLDS.mastered) {
+  if (avgResponseTime <= thresholds.mastered) {
     speedScore = 0.5;
-  } else if (avgResponseTime <= TIME_THRESHOLDS.learning) {
+  } else if (avgResponseTime <= thresholds.learning) {
     // Linear interpolation between mastered and learning thresholds
-    const range = TIME_THRESHOLDS.learning - TIME_THRESHOLDS.mastered;
-    const position = avgResponseTime - TIME_THRESHOLDS.mastered;
+    const range = thresholds.learning - thresholds.mastered;
+    const position = avgResponseTime - thresholds.mastered;
     speedScore = 0.5 * (1 - position / range);
   }
 
