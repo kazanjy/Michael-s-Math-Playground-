@@ -1,5 +1,5 @@
 import type { JetResources, DogfightResult, SessionResourceStats, DogfightTrigger, Difficulty } from '../types';
-import { RESOURCE_CONFIG, DOGFIGHT_XP_COST } from '../types';
+import { RESOURCE_CONFIG, DOGFIGHT_XP_COST, DOGFIGHT_RESOURCE_USAGE } from '../types';
 
 // Local storage key for jet resources
 const JET_RESOURCES_KEY = 'math_playground_jet_resources';
@@ -64,7 +64,7 @@ export function calculateResourcesEarned(
 
 // Process a dogfight encounter
 // Uses missile OR bullets (prefers missile), and flare OR chaff (prefers flare)
-// Dogfights always cost XP based on difficulty, plus additional XP if missing resources
+// Resource usage and XP cost scale with difficulty
 export function processDogfight(
   resources: JetResources,
   trigger: DogfightTrigger,
@@ -72,6 +72,7 @@ export function processDogfight(
   difficulty: Difficulty = 'medium'
 ): { updatedResources: JetResources; result: DogfightResult } {
   const enemyType = ENEMY_JETS[Math.floor(Math.random() * ENEMY_JETS.length)];
+  const resourceUsage = DOGFIGHT_RESOURCE_USAGE[difficulty];
 
   // Base XP cost for dogfight (always applied)
   let xpLost = DOGFIGHT_XP_COST[difficulty];
@@ -83,11 +84,11 @@ export function processDogfight(
   const updatedResources = { ...resources };
 
   // Use missile OR bullets (prefer missile)
-  if (updatedResources.missiles >= RESOURCE_CONFIG.missilesPerFight) {
-    missilesUsed = RESOURCE_CONFIG.missilesPerFight;
+  if (updatedResources.missiles >= resourceUsage.missiles) {
+    missilesUsed = resourceUsage.missiles;
     updatedResources.missiles -= missilesUsed;
-  } else if (updatedResources.bullets >= RESOURCE_CONFIG.bulletsPerFight) {
-    bulletsUsed = RESOURCE_CONFIG.bulletsPerFight;
+  } else if (updatedResources.bullets >= resourceUsage.bullets) {
+    bulletsUsed = resourceUsage.bullets;
     updatedResources.bullets -= bulletsUsed;
   } else {
     // No offensive weapons - lose additional XP
@@ -95,11 +96,11 @@ export function processDogfight(
   }
 
   // Use flare OR chaff (prefer flare)
-  if (updatedResources.flares >= RESOURCE_CONFIG.flaresPerFight) {
-    flaresUsed = RESOURCE_CONFIG.flaresPerFight;
+  if (updatedResources.flares >= resourceUsage.flares) {
+    flaresUsed = resourceUsage.flares;
     updatedResources.flares -= flaresUsed;
-  } else if (updatedResources.chaff >= RESOURCE_CONFIG.chaffPerFight) {
-    chaffUsed = RESOURCE_CONFIG.chaffPerFight;
+  } else if (updatedResources.chaff >= resourceUsage.chaff) {
+    chaffUsed = resourceUsage.chaff;
     updatedResources.chaff -= chaffUsed;
   } else {
     // No countermeasures - lose additional XP

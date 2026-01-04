@@ -229,8 +229,13 @@ export function DogfightOverlay({ result, onComplete }: DogfightOverlayProps) {
               }`}
             >
               {result.victory ? (
-                <div className="text-2xl font-bold text-white drop-shadow">
-                  🎯 VICTORY! 🎯
+                <div>
+                  <div className="text-2xl font-bold text-white drop-shadow">
+                    🎯 VICTORY! 🎯
+                  </div>
+                  <div className="text-lg text-white/90 font-bold mt-1">
+                    -{result.xpLost} XP
+                  </div>
                 </div>
               ) : (
                 <div>

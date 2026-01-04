@@ -283,6 +283,13 @@ export const DOGFIGHT_XP_COST: Record<Difficulty, number> = {
   crazy: 45,
 };
 
+// Resource usage per dogfight by difficulty
+export const DOGFIGHT_RESOURCE_USAGE: Record<Difficulty, { missiles: number; flares: number; bullets: number; chaff: number }> = {
+  easy: { missiles: 1, flares: 1, bullets: 5, chaff: 1 },
+  medium: { missiles: 3, flares: 3, bullets: 15, chaff: 3 },
+  crazy: { missiles: 5, flares: 5, bullets: 25, chaff: 5 },
+};
+
 // Speed Times Tables base thresholds (Crazy difficulty, in ms)
 const SPEED_BASE_THRESHOLDS = {
   mastered: 3000,  // Under 3 seconds = mastered (Crazy)
