@@ -43,17 +43,17 @@ export interface Rank {
 }
 
 export const RANKS: Rank[] = [
-  { level: 1, name: 'Cadet', title: 'Cadet', xpRequired: 0, icon: '🎖️', jet: 'Training Prop', jetIcon: '🛩️' },
-  { level: 2, name: 'Airman', title: 'Airman', xpRequired: 100, icon: '🪖', jet: 'Light Fighter', jetIcon: '✈️' },
-  { level: 3, name: 'Corporal', title: 'Corporal', xpRequired: 300, icon: '⭐', jet: 'Scout Jet', jetIcon: '🛫' },
-  { level: 4, name: 'Sergeant', title: 'Sergeant', xpRequired: 600, icon: '⭐⭐', jet: 'Strike Fighter', jetIcon: '🔥' },
-  { level: 5, name: 'Lieutenant', title: 'Lieutenant', xpRequired: 1000, icon: '🎗️', jet: 'Interceptor', jetIcon: '⚡' },
-  { level: 6, name: 'Captain', title: 'Captain', xpRequired: 1500, icon: '🏅', jet: 'Heavy Fighter', jetIcon: '💨' },
-  { level: 7, name: 'Major', title: 'Major', xpRequired: 2200, icon: '🎖️⭐', jet: 'Stealth Jet', jetIcon: '👻' },
-  { level: 8, name: 'Colonel', title: 'Colonel', xpRequired: 3000, icon: '🦅', jet: 'Super Hornet', jetIcon: '🐝' },
-  { level: 9, name: 'Commander', title: 'Commander', xpRequired: 4000, icon: '⚔️', jet: 'Raptor', jetIcon: '🦅' },
-  { level: 10, name: 'General', title: 'General', xpRequired: 5500, icon: '👑', jet: 'Black Hawk', jetIcon: '🦇' },
-  { level: 11, name: 'Ace Pilot', title: 'Ace Pilot ★', xpRequired: 7500, icon: '🏆', jet: 'Legendary Phoenix', jetIcon: '🔱' },
+  { level: 1, name: 'Cadet', title: 'Cadet', xpRequired: 0, icon: '🎖️', jet: 'T-38 Talon', jetIcon: '🛩️' },
+  { level: 2, name: 'Airman', title: 'Airman', xpRequired: 100, icon: '🪖', jet: 'F-4 Phantom', jetIcon: '✈️' },
+  { level: 3, name: 'Corporal', title: 'Corporal', xpRequired: 300, icon: '⭐', jet: 'F-5 Tiger', jetIcon: '🐯' },
+  { level: 4, name: 'Sergeant', title: 'Sergeant', xpRequired: 600, icon: '⭐⭐', jet: 'F-14 Tomcat', jetIcon: '🐱' },
+  { level: 5, name: 'Lieutenant', title: 'Lieutenant', xpRequired: 1000, icon: '🎗️', jet: 'F-15 Eagle', jetIcon: '🦅' },
+  { level: 6, name: 'Captain', title: 'Captain', xpRequired: 1500, icon: '🏅', jet: 'F-16 Falcon', jetIcon: '🦅' },
+  { level: 7, name: 'Major', title: 'Major', xpRequired: 2200, icon: '🎖️⭐', jet: 'F/A-18 Hornet', jetIcon: '🐝' },
+  { level: 8, name: 'Colonel', title: 'Colonel', xpRequired: 3000, icon: '🦅', jet: 'F-22 Raptor', jetIcon: '⚡' },
+  { level: 9, name: 'Commander', title: 'Commander', xpRequired: 4000, icon: '⚔️', jet: 'F-35 Lightning', jetIcon: '⚡' },
+  { level: 10, name: 'General', title: 'General', xpRequired: 5500, icon: '👑', jet: 'SR-71 Blackbird', jetIcon: '🦇' },
+  { level: 11, name: 'Ace Pilot', title: 'Ace Pilot ★', xpRequired: 7500, icon: '🏆', jet: 'X-15 Rocket Plane', jetIcon: '🚀' },
 ];
 
 // Session configuration
