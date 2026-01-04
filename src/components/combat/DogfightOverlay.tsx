@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { DogfightResult } from '../../types';
 import { getResourceIcon } from '../../lib/jetResources';
@@ -8,6 +9,18 @@ interface DogfightOverlayProps {
 }
 
 export function DogfightOverlay({ result, onComplete }: DogfightOverlayProps) {
+  // Dismiss on any keypress
+  useEffect(() => {
+    if (!result || !result.occurred) return;
+
+    const handleKeyDown = () => {
+      onComplete();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [result, onComplete]);
+
   if (!result || !result.occurred) return null;
 
   // Check if any resources were used
@@ -236,7 +249,7 @@ export function DogfightOverlay({ result, onComplete }: DogfightOverlayProps) {
               transition={{ delay: 1.2, duration: 2, repeat: Infinity }}
               className="text-center text-white/60 text-sm"
             >
-              Tap anywhere to continue
+              Press any key or tap to continue
             </motion.div>
           </motion.div>
         </motion.div>
