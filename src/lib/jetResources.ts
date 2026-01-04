@@ -66,7 +66,8 @@ export function calculateResourcesEarned(
 // Uses missile OR bullets (prefers missile), and flare OR chaff (prefers flare)
 export function processDogfight(
   resources: JetResources,
-  trigger: DogfightTrigger
+  trigger: DogfightTrigger,
+  responseTimeMs?: number
 ): { updatedResources: JetResources; result: DogfightResult } {
   const enemyType = ENEMY_JETS[Math.floor(Math.random() * ENEMY_JETS.length)];
 
@@ -117,6 +118,7 @@ export function processDogfight(
       chaffUsed,
       xpLost,
       victory,
+      responseTimeMs,
     },
   };
 }

@@ -315,6 +315,7 @@ export interface DogfightResult {
   chaffUsed: number;
   xpLost: number;
   victory: boolean;
+  responseTimeMs?: number; // For slow_answer triggers, how long it took
 }
 
 // Session resource tracking

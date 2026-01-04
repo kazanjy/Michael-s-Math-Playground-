@@ -352,9 +352,9 @@ export function PracticePage() {
         // Delay feedback dismissal to show dogfight
         setTimeout(() => {
           setFeedback(null);
-          // Trigger dogfight for slow answer
+          // Trigger dogfight for slow answer (pass responseTime for display)
           setJetResources(currentResources => {
-            const { updatedResources, result } = processDogfight(currentResources, 'slow_answer');
+            const { updatedResources, result } = processDogfight(currentResources, 'slow_answer', responseTime);
             setDogfightResult(result);
 
             // Update resource stats

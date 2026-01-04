@@ -149,6 +149,11 @@ export function DogfightOverlay({ result, onComplete }: DogfightOverlayProps) {
                 ? '🐢 Slow Answer Dogfight! 🐢'
                 : '❌ Wrong Answer Dogfight! ❌'}
             </h2>
+            {result.trigger === 'slow_answer' && result.responseTimeMs && (
+              <p className="text-lg text-amber-300 font-bold mt-1">
+                {(result.responseTimeMs / 1000).toFixed(1)} seconds
+              </p>
+            )}
             <p className="text-sm text-white/80 mt-1">
               vs {result.enemyType}
             </p>
