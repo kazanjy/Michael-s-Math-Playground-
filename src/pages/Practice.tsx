@@ -17,7 +17,6 @@ import {
   saveJetResources,
   calculateResourcesEarned,
   processDogfight,
-  shouldTriggerDogfight,
   addResources,
   createEmptyResourceStats,
 } from '../lib/jetResources';
@@ -91,7 +90,6 @@ export function PracticePage() {
   );
   const [dogfightResult, setDogfightResult] = useState<DogfightResult | null>(null);
   const [resourceStats, setResourceStats] = useState<SessionResourceStats>(createEmptyResourceStats);
-  const [correctAnswerCount, setCorrectAnswerCount] = useState(0);
   const sessionXpAccumulator = useRef(0); // Track XP for resource earning
 
   // Timer state
@@ -317,10 +315,6 @@ export function PracticePage() {
         }));
       }
 
-      // Track correct answer count and check for dogfight
-      const newCorrectCount = correctAnswerCount + 1;
-      setCorrectAnswerCount(newCorrectCount);
-
       // Check for level up
       const currentTotalXp = (currentChild?.totalXp || 0) + newSessionXp;
       const oldRank = getRankForXP(lastCheckedXpRef.current + totalXp);
@@ -342,12 +336,13 @@ export function PracticePage() {
       // Calculate new answers length now (before setTimeout) to avoid stale closure
       const newAnswersLength = answers.length + 1;
 
-      // Check if dogfight should trigger (every 5 correct answers)
-      if (shouldTriggerDogfight(newCorrectCount)) {
+      // Trigger dogfight if answer was slow (> 5 seconds)
+      const wasSlowAnswer = responseTime > TIME_THRESHOLDS.learning;
+      if (wasSlowAnswer) {
         // Delay feedback dismissal to show dogfight
         setTimeout(() => {
           setFeedback(null);
-          // Trigger dogfight
+          // Trigger dogfight for slow answer
           setJetResources(currentResources => {
             const { updatedResources, result } = processDogfight(currentResources);
             setDogfightResult(result);
@@ -380,7 +375,7 @@ export function PracticePage() {
           setQuestionStartTime(Date.now());
         }, 4500); // 1.5s feedback + 3s dogfight
       } else {
-        // Normal flow without dogfight
+        // Normal flow without dogfight (fast answer)
         setTimeout(() => {
           setFeedback(null);
           setIsProcessing(false);
@@ -422,12 +417,46 @@ export function PracticePage() {
       });
       setIsProcessing(true);
 
-      // Clear answer and let them try again
-      setTimeout(() => {
-        setFeedback(null);
-        setIsProcessing(false);
-        setUserAnswer('');
-      }, 2000);
+      // Trigger dogfight on first wrong attempt
+      if (newAttempts === 1) {
+        // Show feedback, then dogfight
+        setTimeout(() => {
+          setFeedback(null);
+          // Trigger dogfight for wrong answer
+          setJetResources(currentResources => {
+            const { updatedResources, result } = processDogfight(currentResources);
+            setDogfightResult(result);
+
+            // Update resource stats
+            setResourceStats(prev => ({
+              ...prev,
+              missilesUsed: prev.missilesUsed + result.missilesUsed,
+              bulletsUsed: prev.bulletsUsed + result.bulletsUsed,
+              flaresUsed: prev.flaresUsed + result.flaresUsed,
+              chaffUsed: prev.chaffUsed + result.chaffUsed,
+              xpLostToDogfights: prev.xpLostToDogfights + result.xpLost,
+              dogfightsWon: prev.dogfightsWon + (result.victory ? 1 : 0),
+              dogfightsLost: prev.dogfightsLost + (result.victory ? 0 : 1),
+            }));
+
+            return updatedResources;
+          });
+        }, 2000);
+
+        // Wait for dogfight to complete before letting them try again
+        setTimeout(() => {
+          setDogfightResult(null);
+          setIsProcessing(false);
+          setUserAnswer('');
+        }, 5000); // 2s feedback + 3s dogfight
+      } else {
+        // Subsequent wrong attempts - just clear and let them try again
+        setTimeout(() => {
+          setFeedback(null);
+          setIsProcessing(false);
+          setUserAnswer('');
+        }, 2000);
+      }
     }
   };
 

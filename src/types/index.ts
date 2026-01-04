@@ -207,18 +207,14 @@ export const RESOURCE_CONFIG = {
   xpPerFlare: 30,        // Every 30 XP earns a flare
   xpPerChaff: 30,        // Every 30 XP earns a chaff
   bulletsPerPack: 10,
-  // XP loss when no resources during dogfight
-  xpLossNoMissile: 15,
-  xpLossNoBullets: 10,
-  xpLossNoFlare: 8,
-  xpLossNoChaff: 8,
+  // XP loss when no resources during dogfight (uses missile OR bullets, flare OR chaff)
+  xpLossNoWeapon: 15,        // No missile or bullets available
+  xpLossNoCountermeasure: 10, // No flare or chaff available
   // Resource usage per dogfight
   missilesPerFight: 1,
   bulletsPerFight: 5,
   flaresPerFight: 1,
   chaffPerFight: 1,
-  // Dogfight frequency (every N correct answers)
-  dogfightFrequency: 5,
 };
 
 // Dogfight result

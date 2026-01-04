@@ -63,6 +63,7 @@ export function calculateResourcesEarned(
 }
 
 // Process a dogfight encounter
+// Uses missile OR bullets (prefers missile), and flare OR chaff (prefers flare)
 export function processDogfight(
   resources: JetResources
 ): { updatedResources: JetResources; result: DogfightResult } {
@@ -76,39 +77,31 @@ export function processDogfight(
 
   const updatedResources = { ...resources };
 
-  // Use missiles (or lose XP)
+  // Use missile OR bullets (prefer missile)
   if (updatedResources.missiles >= RESOURCE_CONFIG.missilesPerFight) {
     missilesUsed = RESOURCE_CONFIG.missilesPerFight;
     updatedResources.missiles -= missilesUsed;
-  } else {
-    xpLost += RESOURCE_CONFIG.xpLossNoMissile;
-  }
-
-  // Use bullets (or lose XP)
-  if (updatedResources.bullets >= RESOURCE_CONFIG.bulletsPerFight) {
+  } else if (updatedResources.bullets >= RESOURCE_CONFIG.bulletsPerFight) {
     bulletsUsed = RESOURCE_CONFIG.bulletsPerFight;
     updatedResources.bullets -= bulletsUsed;
   } else {
-    xpLost += RESOURCE_CONFIG.xpLossNoBullets;
+    // No offensive weapons - lose XP
+    xpLost += RESOURCE_CONFIG.xpLossNoWeapon;
   }
 
-  // Use flares (or lose XP)
+  // Use flare OR chaff (prefer flare)
   if (updatedResources.flares >= RESOURCE_CONFIG.flaresPerFight) {
     flaresUsed = RESOURCE_CONFIG.flaresPerFight;
     updatedResources.flares -= flaresUsed;
-  } else {
-    xpLost += RESOURCE_CONFIG.xpLossNoFlare;
-  }
-
-  // Use chaff (or lose XP)
-  if (updatedResources.chaff >= RESOURCE_CONFIG.chaffPerFight) {
+  } else if (updatedResources.chaff >= RESOURCE_CONFIG.chaffPerFight) {
     chaffUsed = RESOURCE_CONFIG.chaffPerFight;
     updatedResources.chaff -= chaffUsed;
   } else {
-    xpLost += RESOURCE_CONFIG.xpLossNoChaff;
+    // No countermeasures - lose XP
+    xpLost += RESOURCE_CONFIG.xpLossNoCountermeasure;
   }
 
-  // Victory if we had all resources needed
+  // Victory if we had resources needed
   const victory = xpLost === 0;
 
   return {
@@ -124,11 +117,6 @@ export function processDogfight(
       victory,
     },
   };
-}
-
-// Check if a dogfight should occur (every N correct answers)
-export function shouldTriggerDogfight(correctAnswerCount: number): boolean {
-  return correctAnswerCount > 0 && correctAnswerCount % RESOURCE_CONFIG.dogfightFrequency === 0;
 }
 
 // Add resources to current supply
