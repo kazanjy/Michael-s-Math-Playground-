@@ -40,9 +40,8 @@ export function NumberPad({
 
   const NumberButton = ({ num }: { num: number }) => (
     <motion.button
-      whileHover={{ scale: disabled ? 1 : 1.05 }}
       whileTap={{ scale: disabled ? 1 : 0.95 }}
-      onClick={() => handleNumberPress(num)}
+      onPointerDown={() => handleNumberPress(num)}
       disabled={disabled}
       className={`
         w-20 h-20 sm:w-24 sm:h-24
@@ -56,6 +55,7 @@ export function NumberPad({
         active:from-slate-800 active:to-slate-900
         disabled:opacity-50
         transition-colors duration-150
+        select-none touch-manipulation
       `}
     >
       {num}
@@ -91,9 +91,8 @@ export function NumberPad({
 
         {/* Bottom row */}
         <motion.button
-          whileHover={{ scale: disabled ? 1 : 1.05 }}
           whileTap={{ scale: disabled ? 1 : 0.95 }}
-          onClick={handleDelete}
+          onPointerDown={handleDelete}
           onDoubleClick={handleClear}
           disabled={disabled}
           className={`
@@ -108,6 +107,7 @@ export function NumberPad({
             disabled:opacity-50
             flex items-center justify-center
             transition-colors duration-150
+            select-none touch-manipulation
           `}
           title="Tap to delete, double-tap to clear"
         >
@@ -117,7 +117,6 @@ export function NumberPad({
         <NumberButton num={0} />
 
         <motion.button
-          whileHover={{ scale: disabled ? 1 : 1.05 }}
           whileTap={{ scale: disabled ? 1 : 0.95 }}
           onClick={onSubmit}
           disabled={disabled || value === ''}
@@ -132,6 +131,7 @@ export function NumberPad({
             hover:from-emerald-400 hover:to-emerald-500
             disabled:opacity-50 disabled:cursor-not-allowed
             transition-colors duration-150
+            select-none touch-manipulation
           `}
         >
           GO!
