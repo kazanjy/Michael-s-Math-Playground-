@@ -48,25 +48,51 @@ export function LoginPage() {
             transition={{ type: 'spring', delay: 0.2 }}
             className="inline-block mb-4"
           >
-            <div className="relative">
+            <div className="relative inline-block">
+              {/* Explosions behind the jet */}
               <motion.span
-                className="text-7xl"
+                className="absolute -left-12 top-2 text-4xl"
+                animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }}
+                transition={{ duration: 0.6, repeat: Infinity }}
+              >
+                💥
+              </motion.span>
+              <motion.span
+                className="absolute -left-8 -top-4 text-3xl"
+                animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
+                transition={{ duration: 0.5, repeat: Infinity, delay: 0.2 }}
+              >
+                💥
+              </motion.span>
+
+              {/* The jet */}
+              <motion.span
+                className="text-7xl relative z-10"
                 animate={{ x: [0, 5, 0], y: [0, -3, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               >
                 ✈️
               </motion.span>
+
+              {/* Missiles chasing from behind */}
               <motion.span
-                className="absolute -right-4 -top-2 text-4xl"
-                animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
-                transition={{ duration: 0.5, repeat: Infinity }}
+                className="absolute -left-16 top-1 text-2xl"
+                animate={{ x: [0, 15, 0], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
               >
-                💥
+                🚀
               </motion.span>
               <motion.span
-                className="absolute -left-2 top-0 text-2xl"
-                animate={{ opacity: [0, 1, 0], x: [-10, -20] }}
-                transition={{ duration: 1, repeat: Infinity, delay: 0.3 }}
+                className="absolute -left-20 top-6 text-xl"
+                animate={{ x: [0, 12, 0], opacity: [0.4, 0.9, 0.4] }}
+                transition={{ duration: 1.8, repeat: Infinity, delay: 0.4 }}
+              >
+                🚀
+              </motion.span>
+              <motion.span
+                className="absolute -left-14 -top-2 text-lg"
+                animate={{ x: [0, 10, 0], opacity: [0.3, 0.8, 0.3] }}
+                transition={{ duration: 1.3, repeat: Infinity, delay: 0.7 }}
               >
                 🚀
               </motion.span>
