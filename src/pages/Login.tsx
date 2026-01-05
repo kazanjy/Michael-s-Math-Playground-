@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plane, Mail, Loader2 } from 'lucide-react';
+import { Mail, Loader2 } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -46,10 +46,30 @@ export function LoginPage() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', delay: 0.2 }}
-            className="inline-block"
+            className="inline-block mb-4"
           >
-            <div className="bg-white/20 backdrop-blur-sm rounded-full p-6 mb-4 inline-block">
-              <Plane className="w-16 h-16 text-white" />
+            <div className="relative">
+              <motion.span
+                className="text-7xl"
+                animate={{ x: [0, 5, 0], y: [0, -3, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                ✈️
+              </motion.span>
+              <motion.span
+                className="absolute -right-4 -top-2 text-4xl"
+                animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
+                transition={{ duration: 0.5, repeat: Infinity }}
+              >
+                💥
+              </motion.span>
+              <motion.span
+                className="absolute -left-2 top-0 text-2xl"
+                animate={{ opacity: [0, 1, 0], x: [-10, -20] }}
+                transition={{ duration: 1, repeat: Infinity, delay: 0.3 }}
+              >
+                🚀
+              </motion.span>
             </div>
           </motion.div>
           <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">
