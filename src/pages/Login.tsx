@@ -99,7 +99,7 @@ export function LoginPage() {
             </div>
           </motion.div>
           <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">
-            Michael's Fighter Jet Math Dogfight
+            Michael's Math Dogfight
           </h1>
           <p className="text-sky-100 text-lg font-medium">
             Times Tables and Mental Math with Missiles

@@ -66,7 +66,7 @@
 
   <!-- Main title -->
   <text x="600" y="295" font-family="system-ui, -apple-system, sans-serif" font-size="58" font-weight="bold" fill="white" text-anchor="middle" filter="url(#glow)">
-    Michael's Fighter Jet Math Dogfight
+    Michael's Math Dogfight
   </text>
 
   <!-- Subtitle -->

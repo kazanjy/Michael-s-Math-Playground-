@@ -1,4 +1,4 @@
-# Michael's Math Playground - Implementation Plan
+# Michael's Math Dogfight - Implementation Plan
 
 ## Overview
 
