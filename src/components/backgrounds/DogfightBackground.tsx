@@ -414,7 +414,7 @@ export function DogfightBackground() {
   );
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
       {/* Clouds (back layer) */}
       {clouds.map((cloud, i) => (
         <Cloud key={`cloud-${i}`} {...cloud} />
