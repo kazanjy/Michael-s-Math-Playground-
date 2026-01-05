@@ -15,102 +15,74 @@
     .preview {
       width: 1200px;
       height: 630px;
-      background: linear-gradient(to bottom, #38bdf8 0%, #0284c7 50%, #1e293b 100%);
+      background: linear-gradient(to bottom, #0ea5e9 0%, #0284c7 100%);
       position: relative;
       overflow: hidden;
       font-family: system-ui, -apple-system, sans-serif;
-      border-radius: 12px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
 
-    /* Clouds */
-    .cloud { position: absolute; opacity: 0.3; }
-    .c1 { left: 100px; top: 50px; font-size: 60px; }
-    .c2 { left: 300px; top: 120px; font-size: 45px; opacity: 0.25; }
-    .c3 { left: 800px; top: 70px; font-size: 55px; }
-    .c4 { left: 1000px; top: 150px; font-size: 40px; opacity: 0.2; }
-    .c5 { left: 550px; top: 490px; font-size: 50px; opacity: 0.25; }
-
-    /* Emojis */
     .emoji { position: absolute; }
 
-    /* Dogfight top-left */
-    .df1-jet1 { left: 80px; top: 170px; font-size: 50px; }
-    .df1-missile { left: 150px; top: 190px; font-size: 35px; }
-    .df1-jet2 { left: 200px; top: 150px; font-size: 45px; transform: scaleX(-1); }
-    .df1-boom { left: 250px; top: 170px; font-size: 40px; }
-
-    /* Dogfight top-right */
-    .df2-jet1 { left: 950px; top: 120px; font-size: 45px; }
-    .df2-flare1 { left: 1020px; top: 140px; font-size: 30px; }
-    .df2-flare2 { left: 1050px; top: 110px; font-size: 30px; }
-    .df2-flare3 { left: 1080px; top: 130px; font-size: 30px; }
-    .df2-jet2 { left: 880px; top: 100px; font-size: 40px; }
-    .df2-missile { left: 920px; top: 115px; font-size: 28px; }
-
-    /* Dogfight bottom-left */
-    .df3-jet1 { left: 50px; top: 450px; font-size: 55px; }
-    .df3-smoke { left: 130px; top: 470px; font-size: 35px; }
-    .df3-chaff1 { left: 100px; top: 490px; font-size: 28px; }
-    .df3-chaff2 { left: 120px; top: 510px; font-size: 28px; }
-    .df3-missile { left: 180px; top: 430px; font-size: 30px; }
-
-    /* Dogfight bottom-right */
-    .df4-jet1 { left: 1000px; top: 470px; font-size: 50px; }
-    .df4-boom { left: 1070px; top: 490px; font-size: 35px; }
-    .df4-flare { left: 1100px; top: 450px; font-size: 40px; }
-    .df4-missile { left: 930px; top: 490px; font-size: 30px; }
-
-    /* Scattered elements */
-    .s1 { left: 700px; top: 90px; font-size: 35px; }
-    .s2 { left: 450px; top: 150px; font-size: 30px; }
-    .s3 { left: 350px; top: 470px; font-size: 35px; }
-    .s4 { left: 750px; top: 490px; font-size: 30px; }
-    .s5 { left: 850px; top: 520px; font-size: 28px; }
-    .s6 { left: 500px; top: 100px; font-size: 32px; }
-    .s7 { left: 650px; top: 510px; font-size: 38px; }
-
-    /* Title area */
-    .title-bg {
+    /* Hero jet scene - top center */
+    .hero-jet {
       position: absolute;
-      left: 100px;
-      top: 230px;
-      width: 1000px;
-      height: 180px;
-      background: rgba(0, 0, 0, 0.45);
-      border-radius: 20px;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
     }
+    .hero-jet .jet { font-size: 100px; position: relative; z-index: 2; }
+    .hero-jet .explosion1 { position: absolute; font-size: 50px; left: -60px; top: -20px; z-index: 1; }
+    .hero-jet .explosion2 { position: absolute; font-size: 40px; left: -40px; top: 30px; z-index: 1; }
+    .hero-jet .missile1 { position: absolute; font-size: 35px; left: -100px; top: 20px; z-index: 0; }
+    .hero-jet .missile2 { position: absolute; font-size: 30px; left: -120px; top: 50px; z-index: 0; }
+    .hero-jet .missile3 { position: absolute; font-size: 25px; left: -90px; top: 70px; z-index: 0; }
+
+    /* Sparkles - right side */
+    .sparkles {
+      position: absolute;
+      right: 80px;
+      top: 180px;
+      font-size: 80px;
+    }
+
+    /* Title area - centered */
     .title {
       position: absolute;
       width: 100%;
       text-align: center;
-      top: 265px;
-      font-size: 52px;
+      top: 300px;
+      font-size: 72px;
       font-weight: bold;
       color: white;
-      text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      text-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
     .subtitle {
       position: absolute;
       width: 100%;
       text-align: center;
-      top: 335px;
-      font-size: 30px;
+      top: 400px;
+      font-size: 36px;
       font-weight: 600;
-      color: #fcd34d;
+      color: white;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
     }
     .tagline {
       position: absolute;
       width: 100%;
       text-align: center;
-      top: 378px;
-      font-size: 24px;
-      color: #bae6fd;
+      top: 460px;
+      font-size: 28px;
+      color: rgba(255,255,255,0.9);
     }
 
-    /* Jets beside title */
-    .title-jet-left { left: 70px; top: 290px; font-size: 45px; }
-    .title-jet-right { left: 1085px; top: 290px; font-size: 45px; transform: scaleX(-1); }
+    /* Bottom right jet with sparkles */
+    .bottom-scene {
+      position: absolute;
+      right: 100px;
+      bottom: 60px;
+    }
+    .bottom-scene .jet { font-size: 50px; }
+    .bottom-scene .sparkle { position: absolute; font-size: 60px; right: -30px; top: -40px; }
 
     .instructions {
       position: fixed;
@@ -123,65 +95,37 @@
       border-radius: 8px;
       font-weight: bold;
       font-size: 14px;
+      z-index: 1000;
     }
   </style>
 </head>
 <body>
-  <div class="instructions">Take a screenshot of this at 1200×630, or use browser DevTools to capture as image!</div>
+  <div class="instructions">Screenshot this at 1200×630 and save as public/social-preview.png</div>
 
   <div class="preview">
-    <!-- Clouds -->
-    <span class="cloud c1">☁️</span>
-    <span class="cloud c2">☁️</span>
-    <span class="cloud c3">☁️</span>
-    <span class="cloud c4">☁️</span>
-    <span class="cloud c5">☁️</span>
+    <!-- Hero jet with explosions and missiles -->
+    <div class="hero-jet">
+      <span class="explosion1">💥</span>
+      <span class="explosion2">💥</span>
+      <span class="missile1">🚀</span>
+      <span class="missile2">🚀</span>
+      <span class="missile3">🚀</span>
+      <span class="jet">✈️</span>
+    </div>
 
-    <!-- Dogfight top-left -->
-    <span class="emoji df1-jet1">🛩️</span>
-    <span class="emoji df1-missile">🚀</span>
-    <span class="emoji df1-jet2">✈️</span>
-    <span class="emoji df1-boom">💥</span>
+    <!-- Sparkles on right -->
+    <div class="sparkles">✨</div>
 
-    <!-- Dogfight top-right -->
-    <span class="emoji df2-jet1">✈️</span>
-    <span class="emoji df2-flare1">🔥</span>
-    <span class="emoji df2-flare2">🔥</span>
-    <span class="emoji df2-flare3">🔥</span>
-    <span class="emoji df2-jet2">🛩️</span>
-    <span class="emoji df2-missile">🚀</span>
-
-    <!-- Dogfight bottom-left -->
-    <span class="emoji df3-jet1">✈️</span>
-    <span class="emoji df3-smoke">💨</span>
-    <span class="emoji df3-chaff1">✨</span>
-    <span class="emoji df3-chaff2">✨</span>
-    <span class="emoji df3-missile">🚀</span>
-
-    <!-- Dogfight bottom-right -->
-    <span class="emoji df4-jet1">🛩️</span>
-    <span class="emoji df4-boom">💥</span>
-    <span class="emoji df4-flare">🔥</span>
-    <span class="emoji df4-missile">🚀</span>
-
-    <!-- Scattered -->
-    <span class="emoji s1">💥</span>
-    <span class="emoji s2">🚀</span>
-    <span class="emoji s3">🔥</span>
-    <span class="emoji s4">✨</span>
-    <span class="emoji s5">🚀</span>
-    <span class="emoji s6">🛩️</span>
-    <span class="emoji s7">✈️</span>
-
-    <!-- Title area -->
-    <div class="title-bg"></div>
+    <!-- Title -->
     <div class="title">Michael's Math Dogfight</div>
     <div class="subtitle">Times Tables and Mental Math with Missiles</div>
     <div class="tagline">Ready for takeoff, pilot?</div>
 
-    <!-- Jets beside title -->
-    <span class="emoji title-jet-left">🛩️</span>
-    <span class="emoji title-jet-right">🛩️</span>
+    <!-- Bottom right jet with sparkles -->
+    <div class="bottom-scene">
+      <span class="sparkle">✨</span>
+      <span class="jet">🛩️</span>
+    </div>
   </div>
 </body>
 </html>
