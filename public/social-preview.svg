@@ -1,0 +1,85 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sky gradient background -->
+  <defs>
+    <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#38bdf8;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0284c7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e293b;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#skyGradient)"/>
+
+  <!-- Clouds -->
+  <text x="100" y="80" font-size="60" opacity="0.3">☁️</text>
+  <text x="300" y="150" font-size="45" opacity="0.25">☁️</text>
+  <text x="800" y="100" font-size="55" opacity="0.3">☁️</text>
+  <text x="1000" y="180" font-size="40" opacity="0.2">☁️</text>
+  <text x="550" y="520" font-size="50" opacity="0.25">☁️</text>
+
+  <!-- Dogfight scene - top left -->
+  <text x="80" y="200" font-size="50">🛩️</text>
+  <text x="150" y="220" font-size="35">🚀</text>
+  <text x="200" y="180" font-size="45" transform="scale(-1,1) translate(-400,0)">✈️</text>
+  <text x="250" y="200" font-size="40">💥</text>
+
+  <!-- Dogfight scene - top right -->
+  <text x="950" y="150" font-size="45">✈️</text>
+  <text x="1020" y="170" font-size="30">🔥</text>
+  <text x="1050" y="140" font-size="30">🔥</text>
+  <text x="1080" y="160" font-size="30">🔥</text>
+  <text x="880" y="130" font-size="40">🛩️</text>
+  <text x="920" y="145" font-size="28">🚀</text>
+
+  <!-- Dogfight scene - bottom left -->
+  <text x="50" y="480" font-size="55">✈️</text>
+  <text x="130" y="500" font-size="35">💨</text>
+  <text x="100" y="520" font-size="28">✨</text>
+  <text x="120" y="540" font-size="28">✨</text>
+  <text x="180" y="460" font-size="30">🚀</text>
+
+  <!-- Dogfight scene - bottom right -->
+  <text x="1000" y="500" font-size="50">🛩️</text>
+  <text x="1070" y="520" font-size="35">💥</text>
+  <text x="1100" y="480" font-size="40">🔥</text>
+  <text x="930" y="520" font-size="30">🚀</text>
+
+  <!-- Scattered elements -->
+  <text x="700" y="120" font-size="35">💥</text>
+  <text x="450" y="180" font-size="30">🚀</text>
+  <text x="350" y="500" font-size="35">🔥</text>
+  <text x="750" y="520" font-size="30">✨</text>
+  <text x="850" y="550" font-size="28">🚀</text>
+  <text x="500" y="130" font-size="32">🛩️</text>
+  <text x="650" y="540" font-size="38">✈️</text>
+
+  <!-- Main title background glow -->
+  <rect x="100" y="220" width="1000" height="200" rx="20" fill="rgba(0,0,0,0.4)"/>
+
+  <!-- Main title -->
+  <text x="600" y="295" font-family="system-ui, -apple-system, sans-serif" font-size="58" font-weight="bold" fill="white" text-anchor="middle" filter="url(#glow)">
+    Michael's Fighter Jet Math Dogfight
+  </text>
+
+  <!-- Subtitle -->
+  <text x="600" y="360" font-family="system-ui, -apple-system, sans-serif" font-size="32" fill="#fcd34d" text-anchor="middle" font-weight="600">
+    Times Tables and Mental Math with Missiles
+  </text>
+
+  <!-- Tagline -->
+  <text x="600" y="405" font-family="system-ui, -apple-system, sans-serif" font-size="26" fill="#bae6fd" text-anchor="middle">
+    Ready for takeoff, pilot?
+  </text>
+
+  <!-- Decorative jets near title -->
+  <text x="70" y="320" font-size="45">🛩️</text>
+  <text x="1085" y="320" font-size="45" transform="scale(-1,1) translate(-2200,0)">🛩️</text>
+</svg>

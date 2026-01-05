@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Convert Social Preview to PNG</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      padding: 20px;
+      background: #1e293b;
+      color: white;
+    }
+    h1 { margin-bottom: 10px; }
+    p { color: #94a3b8; margin-bottom: 20px; }
+    canvas {
+      border: 2px solid #475569;
+      border-radius: 8px;
+      max-width: 100%;
+    }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover { background: #2563eb; }
+  </style>
+</head>
+<body>
+  <h1>Social Preview Image Generator</h1>
+  <p>Click the button below to download the social preview as PNG (1200×630)</p>
+
+  <canvas id="canvas" width="1200" height="630"></canvas>
+  <br>
+  <button onclick="downloadPNG()">Download as PNG</button>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Load and render the SVG
+    const img = new Image();
+    img.onload = function() {
+      ctx.drawImage(img, 0, 0, 1200, 630);
+    };
+    img.src = '../public/social-preview.svg';
+
+    function downloadPNG() {
+      const link = document.createElement('a');
+      link.download = 'social-preview.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>
