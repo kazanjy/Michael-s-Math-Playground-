@@ -1,19 +1,27 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginPage } from './pages/Login';
 import { HomePage } from './pages/Home';
 import { PracticePage } from './pages/Practice';
 import { SummaryPage } from './pages/Summary';
 
+// Force logout by clearing all storage and redirecting
+function forceLogout() {
+  // Clear all auth-related storage
+  localStorage.removeItem('math_playground_demo_profile');
+  localStorage.removeItem('math_playground_demo_children');
+  localStorage.removeItem('math_playground_demo_current_child');
+  sessionStorage.clear();
+  // Force full page reload to login
+  window.location.href = '/login';
+}
+
 // Logout route component
 function LogoutRoute() {
-  const { signOut } = useAuth();
-  const navigate = useNavigate();
-
   useEffect(() => {
-    signOut().then(() => navigate('/login', { replace: true }));
-  }, [signOut, navigate]);
+    forceLogout();
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center">
@@ -25,14 +33,12 @@ function LogoutRoute() {
 // Handle ?logout query parameter
 function LogoutQueryHandler({ children }: { children: React.ReactNode }) {
   const [searchParams] = useSearchParams();
-  const { signOut } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (searchParams.has('logout')) {
-      signOut().then(() => navigate('/login', { replace: true }));
+      forceLogout();
     }
-  }, [searchParams, signOut, navigate]);
+  }, [searchParams]);
 
   if (searchParams.has('logout')) {
     return (
