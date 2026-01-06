@@ -37,71 +37,114 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     currentChild: null,
   });
 
-  // Check for existing session on mount
+  // Helper to load user data from Supabase
+  const loadUserData = async (userId: string, email: string) => {
+    // Try to fetch existing profile
+    let { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    // If no profile exists, create one (first-time login)
+    if (!profile) {
+      const { data: newProfile } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          email: email,
+          is_parent: true,
+        })
+        .select()
+        .single();
+      profile = newProfile;
+    }
+
+    const { data: childProfiles } = await supabase
+      .from('child_profiles')
+      .select('*')
+      .eq('parent_id', userId);
+
+    setState({
+      isLoading: false,
+      isAuthenticated: true,
+      profile: profile ? {
+        id: profile.id,
+        email: profile.email,
+        isParent: profile.is_parent,
+        createdAt: profile.created_at,
+      } : null,
+      childProfiles: (childProfiles || []).map(c => ({
+        id: c.id,
+        parentId: c.parent_id,
+        name: c.name,
+        avatar: c.avatar,
+        currentRank: c.current_rank,
+        totalXp: c.total_xp,
+        createdAt: c.created_at,
+      })),
+      currentChild: null,
+    });
+  };
+
+  // Check for existing session and listen for auth changes
   useEffect(() => {
-    const initAuth = async () => {
-      // Check for demo mode first
-      const demoProfile = localStorage.getItem(DEMO_PROFILE_KEY);
-      if (demoProfile) {
-        const profile = JSON.parse(demoProfile) as Profile;
-        const children = JSON.parse(localStorage.getItem(DEMO_CHILDREN_KEY) || '[]') as ChildProfile[];
-        const currentChildId = localStorage.getItem(DEMO_CURRENT_CHILD_KEY);
-        const currentChild = children.find(c => c.id === currentChildId) || null;
+    // Check for demo mode first
+    const demoProfile = localStorage.getItem(DEMO_PROFILE_KEY);
+    if (demoProfile) {
+      const profile = JSON.parse(demoProfile) as Profile;
+      const children = JSON.parse(localStorage.getItem(DEMO_CHILDREN_KEY) || '[]') as ChildProfile[];
+      const currentChildId = localStorage.getItem(DEMO_CURRENT_CHILD_KEY);
+      const currentChild = children.find(c => c.id === currentChildId) || null;
 
-        setState({
-          isLoading: false,
-          isAuthenticated: true,
-          profile,
-          childProfiles: children,
-          currentChild,
-        });
-        return;
-      }
+      setState({
+        isLoading: false,
+        isAuthenticated: true,
+        profile,
+        childProfiles: children,
+        currentChild,
+      });
+      return;
+    }
 
-      // Check Supabase if configured
-      if (isSupabaseConfigured()) {
+    // Set up Supabase auth listener
+    if (isSupabaseConfigured()) {
+      // Listen for auth state changes (handles magic link callback)
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (event === 'SIGNED_IN' && session?.user) {
+            await loadUserData(session.user.id, session.user.email || '');
+          } else if (event === 'SIGNED_OUT') {
+            setState({
+              isLoading: false,
+              isAuthenticated: false,
+              profile: null,
+              childProfiles: [],
+              currentChild: null,
+            });
+          }
+        }
+      );
+
+      // Check for existing session on mount
+      const initAuth = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          // Fetch profile data
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          const { data: childProfiles } = await supabase
-            .from('child_profiles')
-            .select('*')
-            .eq('parent_id', session.user.id);
-
-          setState({
-            isLoading: false,
-            isAuthenticated: true,
-            profile: profile ? {
-              id: profile.id,
-              email: profile.email,
-              isParent: profile.is_parent,
-              createdAt: profile.created_at,
-            } : null,
-            childProfiles: (childProfiles || []).map(c => ({
-              id: c.id,
-              parentId: c.parent_id,
-              name: c.name,
-              avatar: c.avatar,
-              currentRank: c.current_rank,
-              totalXp: c.total_xp,
-              createdAt: c.created_at,
-            })),
-            currentChild: null,
-          });
-          return;
+          await loadUserData(session.user.id, session.user.email || '');
+        } else {
+          setState(s => ({ ...s, isLoading: false }));
         }
-      }
+      };
 
-      setState(s => ({ ...s, isLoading: false }));
-    };
+      initAuth();
 
-    initAuth();
+      // Cleanup subscription on unmount
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
+
+    setState(s => ({ ...s, isLoading: false }));
   }, []);
 
   const signInWithMagicLink = async (email: string): Promise<{ error?: string }> => {
