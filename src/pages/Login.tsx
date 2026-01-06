@@ -158,7 +158,7 @@ export function LoginPage() {
                 {isLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin mx-auto" />
                 ) : (
-                  'Send Magic Link'
+                  'Send Login Magic Link'
                 )}
               </Button>
             </form>
