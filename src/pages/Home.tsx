@@ -273,35 +273,38 @@ export function HomePage() {
             Configure Your Mission
           </h2>
 
-          {/* Difficulty Selection - Prominent at top */}
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            {(['easy', 'medium', 'crazy'] as Difficulty[]).map(diff => (
-              <button
-                key={diff}
-                onClick={() => setConfig(c => ({ ...c, difficulty: diff }))}
-                data-tip={
-                  diff === 'easy'
-                    ? 'Easy: More time to answer (2x). Dogfights cost 15 XP.'
-                    : diff === 'medium'
-                    ? 'Medium: Standard timing (1.5x). Dogfights cost 30 XP.'
-                    : 'Crazy: Fastest timing. Dogfights cost 45 XP. For experts!'
-                }
-                className={`p-3 rounded-xl font-bold transition-colors ${
-                  config.difficulty === diff
-                    ? diff === 'easy'
-                      ? 'bg-emerald-600 text-white'
+          {/* Mission Difficulty Section */}
+          <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700">
+            <h3 className="text-white font-bold mb-3">Mission Difficulty</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {(['easy', 'medium', 'crazy'] as Difficulty[]).map(diff => (
+                <button
+                  key={diff}
+                  onClick={() => setConfig(c => ({ ...c, difficulty: diff }))}
+                  data-tip={
+                    diff === 'easy'
+                      ? 'Easy: More time to answer (2x). Dogfights cost 15 XP.'
                       : diff === 'medium'
-                      ? 'bg-amber-600 text-white'
-                      : 'bg-red-600 text-white'
-                    : 'bg-slate-700 text-slate-400'
-                }`}
-              >
-                {diff === 'easy' && '😊 '}
-                {diff === 'medium' && '💪 '}
-                {diff === 'crazy' && '🔥 '}
-                {DIFFICULTY_LABELS[diff]}
-              </button>
-            ))}
+                      ? 'Medium: Standard timing (1.5x). Dogfights cost 30 XP.'
+                      : 'Crazy: Fastest timing. Dogfights cost 45 XP. For experts!'
+                  }
+                  className={`p-3 rounded-xl font-bold transition-colors ${
+                    config.difficulty === diff
+                      ? diff === 'easy'
+                        ? 'bg-emerald-600 text-white'
+                        : diff === 'medium'
+                        ? 'bg-amber-600 text-white'
+                        : 'bg-red-600 text-white'
+                      : 'bg-slate-700 text-slate-400'
+                  }`}
+                >
+                  {diff === 'easy' && '😊 '}
+                  {diff === 'medium' && '💪 '}
+                  {diff === 'crazy' && '🔥 '}
+                  {DIFFICULTY_LABELS[diff]}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Speed Times Tables Section */}
