@@ -44,9 +44,9 @@ export function NumberPad({
       onPointerDown={() => handleNumberPress(num)}
       disabled={disabled}
       className={`
-        w-20 h-20 sm:w-24 sm:h-24
+        w-[72px] h-[72px] sm:w-24 sm:h-24 md:w-28 md:h-28
         rounded-2xl
-        text-3xl sm:text-4xl font-bold
+        text-3xl sm:text-4xl md:text-5xl font-bold
         bg-gradient-to-b from-slate-700 to-slate-800
         text-white
         shadow-lg shadow-black/30
@@ -56,6 +56,7 @@ export function NumberPad({
         disabled:opacity-50
         transition-colors duration-150
         select-none touch-manipulation
+        isolate
       `}
     >
       {num}
@@ -83,8 +84,8 @@ export function NumberPad({
         </div>
       </div>
 
-      {/* Number grid */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+      {/* Number grid - larger gaps prevent mis-taps on touch devices */}
+      <div className="grid grid-cols-3 gap-3 sm:gap-4 md:gap-5">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
           <NumberButton key={num} num={num} />
         ))}
@@ -96,7 +97,7 @@ export function NumberPad({
           onDoubleClick={handleClear}
           disabled={disabled}
           className={`
-            w-20 h-20 sm:w-24 sm:h-24
+            w-[72px] h-[72px] sm:w-24 sm:h-24 md:w-28 md:h-28
             rounded-2xl
             text-2xl font-bold
             bg-gradient-to-b from-red-600 to-red-700
@@ -108,10 +109,11 @@ export function NumberPad({
             flex items-center justify-center
             transition-colors duration-150
             select-none touch-manipulation
+            isolate
           `}
           data-tip="Tap to delete, double-tap to clear"
         >
-          <Delete size={32} />
+          <Delete className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9" />
         </motion.button>
 
         <NumberButton num={0} />
@@ -122,9 +124,9 @@ export function NumberPad({
           disabled={disabled || value === ''}
           data-tip="Submit your answer (or press Enter)"
           className={`
-            w-20 h-20 sm:w-24 sm:h-24
+            w-[72px] h-[72px] sm:w-24 sm:h-24 md:w-28 md:h-28
             rounded-2xl
-            text-xl font-bold
+            text-xl sm:text-2xl md:text-3xl font-bold
             bg-gradient-to-b from-emerald-500 to-emerald-600
             text-white
             shadow-lg shadow-black/30
@@ -133,6 +135,7 @@ export function NumberPad({
             disabled:opacity-50 disabled:cursor-not-allowed
             transition-colors duration-150
             select-none touch-manipulation
+            isolate
           `}
         >
           GO!
