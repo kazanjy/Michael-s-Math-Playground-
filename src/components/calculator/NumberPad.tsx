@@ -41,10 +41,10 @@ export function NumberPad({
     onChange('');
   };
 
-  // On tablets, we extend the touch target downward to compensate for finger angle
-  // The visual button is positioned at the top of the touch area
+  // On tablets, we shift the touch target down to compensate for finger angle
+  // pt-4 moves the touch zone start down, pb-6 extends it below the visual button
   const touchTargetClass = isTablet
-    ? 'pt-0 pb-10' // Extra padding at bottom extends touch target down (40px)
+    ? 'pt-4 pb-6' // Shift touch zone down 16px from top, extend 24px below
     : '';
 
   const NumberButton = ({ num }: { num: number }) => (
@@ -70,6 +70,7 @@ export function NumberPad({
           transition-colors duration-150
           select-none touch-manipulation
           pointer-events-none
+          ${isTablet ? '-mt-4' : ''}
         `}
       >
         {num}
@@ -99,7 +100,7 @@ export function NumberPad({
       </div>
 
       {/* Number grid - larger gaps prevent mis-taps on touch devices */}
-      <div className={`grid grid-cols-3 gap-3 sm:gap-4 md:gap-5 ${isTablet ? '-mb-10' : ''}`}>
+      <div className={`grid grid-cols-3 gap-3 sm:gap-4 md:gap-5 ${isTablet ? '-mb-6' : ''}`}>
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
           <NumberButton key={num} num={num} />
         ))}
@@ -128,6 +129,7 @@ export function NumberPad({
               transition-colors duration-150
               select-none touch-manipulation
               pointer-events-none
+              ${isTablet ? '-mt-4' : ''}
             `}
             data-tip="Tap to delete, double-tap to clear"
           >
@@ -160,6 +162,7 @@ export function NumberPad({
               transition-colors duration-150
               select-none touch-manipulation
               pointer-events-none
+              ${isTablet ? '-mt-4' : ''}
             `}
             data-tip="Submit your answer (or press Enter)"
           >
