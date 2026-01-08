@@ -44,7 +44,7 @@ export function NumberPad({
   // On tablets, we extend the touch target downward to compensate for finger angle
   // The visual button is positioned at the top of the touch area
   const touchTargetClass = isTablet
-    ? 'pt-0 pb-3' // Extra padding at bottom extends touch target down
+    ? 'pt-0 pb-6' // Extra padding at bottom extends touch target down (24px)
     : '';
 
   const NumberButton = ({ num }: { num: number }) => (
@@ -99,7 +99,7 @@ export function NumberPad({
       </div>
 
       {/* Number grid - larger gaps prevent mis-taps on touch devices */}
-      <div className={`grid grid-cols-3 gap-3 sm:gap-4 md:gap-5 ${isTablet ? '-mb-3' : ''}`}>
+      <div className={`grid grid-cols-3 gap-3 sm:gap-4 md:gap-5 ${isTablet ? '-mb-6' : ''}`}>
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
           <NumberButton key={num} num={num} />
         ))}
