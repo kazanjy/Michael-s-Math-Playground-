@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, CSSProperties } from 'react';
 import { motion } from 'framer-motion';
 
 interface ButtonProps {
@@ -10,6 +10,7 @@ interface ButtonProps {
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
   title?: string;
+  style?: CSSProperties;
   'data-tip'?: string;
 }
 
@@ -37,6 +38,7 @@ export function Button({
   onClick,
   type = 'button',
   title,
+  style,
   'data-tip': dataTip,
 }: ButtonProps) {
   return (
@@ -54,6 +56,7 @@ export function Button({
       onClick={onClick}
       type={type}
       title={title}
+      style={style}
       data-tip={dataTip}
     >
       {children}

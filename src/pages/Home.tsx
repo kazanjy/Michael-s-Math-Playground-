@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, LogOut, Trophy, Zap, Clock, Hash, History } from 'lucide-react';
+import { Play, LogOut, Trophy, Zap, Clock, Hash, History, Dumbbell, Plane } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { createDefaultSessionConfig, DIGIT_COMBOS, computeOperations, DIFFICULTY_LABELS } from '../types';
@@ -269,6 +269,25 @@ export function HomePage() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
+          {/* Mode Switcher */}
+          <div className="bg-slate-800/50 rounded-2xl p-3 border border-slate-700 mb-4">
+            <div className="flex gap-2">
+              <button
+                className="flex-1 p-3 rounded-xl bg-blue-600 text-white font-bold flex items-center justify-center gap-2"
+              >
+                <Plane className="w-5 h-5" />
+                Math Dogfight
+              </button>
+              <button
+                onClick={() => navigate('/gymnasium')}
+                className="flex-1 p-3 rounded-xl bg-slate-700 text-slate-300 font-bold flex items-center justify-center gap-2 hover:bg-slate-600 transition-colors"
+              >
+                <Dumbbell className="w-5 h-5" />
+                Word Problems
+              </button>
+            </div>
+          </div>
+
           <h2 className="text-2xl font-bold text-white text-center mb-4">
             Configure Your Mission
           </h2>

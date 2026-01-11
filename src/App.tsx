@@ -5,6 +5,9 @@ import { LoginPage } from './pages/Login';
 import { HomePage } from './pages/Home';
 import { PracticePage } from './pages/Practice';
 import { SummaryPage } from './pages/Summary';
+import { GymnasiumHomePage } from './pages/GymnasiumHome';
+import { GymnasiumPracticePage } from './pages/GymnasiumPractice';
+import { GymnasiumSummaryPage } from './pages/GymnasiumSummary';
 
 // Force logout by clearing all storage and redirecting
 function forceLogout() {
@@ -102,6 +105,31 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <SummaryPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* Gymnasium (Word Problem) Routes */}
+        <Route
+          path="/gymnasium"
+          element={
+            <ProtectedRoute>
+              <GymnasiumHomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/gymnasium/practice"
+          element={
+            <ProtectedRoute>
+              <GymnasiumPracticePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/gymnasium/summary"
+          element={
+            <ProtectedRoute>
+              <GymnasiumSummaryPage />
             </ProtectedRoute>
           }
         />
