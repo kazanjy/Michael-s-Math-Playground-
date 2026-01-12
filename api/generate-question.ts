@@ -118,6 +118,7 @@ function getThemeDescription(theme: string): string {
     princesses: 'Fairy tale princesses - use castles, royal balls, jewels, magical creatures, kingdoms, etc.',
     pokemon: 'Pokemon - use Pokemon creatures, trainers, battles, pokeballs, gym badges, etc.',
     minecraft: 'Minecraft - use blocks, mining, crafting, mobs, diamonds, building, etc.',
+    fighter_jets: 'Fighter jets and aviation - use pilots, jets (F-22, F-35, etc.), missions, altitude, speed (Mach), fuel, dogfights, aircraft carriers, squadrons, etc.',
     standard: 'Standard educational context - use everyday objects, people, and situations.',
   };
   return themes[theme] || themes.standard;

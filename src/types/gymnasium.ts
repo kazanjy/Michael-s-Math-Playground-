@@ -7,6 +7,7 @@ export type Theme =
   | 'princesses'
   | 'pokemon'
   | 'minecraft'
+  | 'fighter_jets'
   | 'standard'
   | 'custom';
 
@@ -16,6 +17,7 @@ export const THEME_OPTIONS: { value: Theme; label: string; emoji: string; colors
   { value: 'princesses', label: 'Princesses', emoji: '👸', colors: { primary: '#db2777', secondary: '#a855f7', accent: '#fbbf24' } },
   { value: 'pokemon', label: 'Pokemon', emoji: '⚡', colors: { primary: '#dc2626', secondary: '#fbbf24', accent: '#3b82f6' } },
   { value: 'minecraft', label: 'Minecraft', emoji: '⛏️', colors: { primary: '#65a30d', secondary: '#78350f', accent: '#6b7280' } },
+  { value: 'fighter_jets', label: 'Fighter Jets', emoji: '✈️', colors: { primary: '#1e3a5f', secondary: '#374151', accent: '#f59e0b' } },
   { value: 'standard', label: 'Standard', emoji: '📚', colors: { primary: '#3b82f6', secondary: '#6366f1', accent: '#10b981' } },
   { value: 'custom', label: 'Custom', emoji: '✨', colors: { primary: '#8b5cf6', secondary: '#ec4899', accent: '#14b8a6' } },
 ];
@@ -172,6 +174,10 @@ export const THEME_LEVELS: Record<Theme, { name: string; levels: string[] }> = {
   minecraft: {
     name: 'Minecraft',
     levels: ['Wood Tier', 'Stone Tier', 'Iron Tier', 'Gold Tier', 'Diamond Tier', 'Netherite Master'],
+  },
+  fighter_jets: {
+    name: 'Fighter Jets',
+    levels: ['Cadet', 'Wingman', 'Flight Lead', 'Squadron Commander', 'Top Gun', 'Ace Pilot'],
   },
   standard: {
     name: 'Standard',
