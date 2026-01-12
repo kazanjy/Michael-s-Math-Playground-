@@ -2,9 +2,6 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginPage } from './pages/Login';
-import { HomePage } from './pages/Home';
-import { PracticePage } from './pages/Practice';
-import { SummaryPage } from './pages/Summary';
 import { GymnasiumHomePage } from './pages/GymnasiumHome';
 import { GymnasiumPracticePage } from './pages/GymnasiumPractice';
 import { GymnasiumSummaryPage } from './pages/GymnasiumSummary';
@@ -69,7 +66,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  // If authenticated but no child selected, still allow (they can select on home)
   return <>{children}</>;
 }
 
@@ -88,7 +84,7 @@ function AppRoutes() {
           path="/"
           element={
             <ProtectedRoute>
-              <HomePage />
+              <GymnasiumHomePage />
             </ProtectedRoute>
           }
         />
@@ -96,37 +92,12 @@ function AppRoutes() {
           path="/practice"
           element={
             <ProtectedRoute>
-              <PracticePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/summary"
-          element={
-            <ProtectedRoute>
-              <SummaryPage />
-            </ProtectedRoute>
-          }
-        />
-        {/* Gymnasium (Word Problem) Routes */}
-        <Route
-          path="/gymnasium"
-          element={
-            <ProtectedRoute>
-              <GymnasiumHomePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/gymnasium/practice"
-          element={
-            <ProtectedRoute>
               <GymnasiumPracticePage />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/gymnasium/summary"
+          path="/summary"
           element={
             <ProtectedRoute>
               <GymnasiumSummaryPage />

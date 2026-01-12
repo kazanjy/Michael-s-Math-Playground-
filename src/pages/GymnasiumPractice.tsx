@@ -134,7 +134,7 @@ export function GymnasiumPracticePage() {
         updateChildXp(currentChild.id, totalXp);
       }
 
-      navigate('/gymnasium/summary');
+      navigate('/summary');
     }
   }, [isSessionComplete, isProcessing, isLoadingQuestion, answers, totalXp, elapsedTime, config, currentChild, updateChildXp, navigate, bestStreak]);
 
@@ -364,9 +364,9 @@ export function GymnasiumPracticePage() {
         updateChildXp(currentChild.id, totalXp);
       }
 
-      navigate('/gymnasium/summary');
+      navigate('/summary');
     } else {
-      navigate('/gymnasium');
+      navigate('/');
     }
   };
 

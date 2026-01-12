@@ -34,10 +34,10 @@ export function GymnasiumSummaryPage() {
       try {
         setResult(JSON.parse(stored));
       } catch {
-        navigate('/gymnasium');
+        navigate('/');
       }
     } else {
-      navigate('/gymnasium');
+      navigate('/');
     }
   }, [navigate]);
 
@@ -301,7 +301,7 @@ export function GymnasiumSummaryPage() {
             variant="secondary"
             size="lg"
             className="flex-1"
-            onClick={() => navigate('/gymnasium')}
+            onClick={() => navigate('/')}
           >
             <Home className="w-5 h-5 mr-2" />
             Home
@@ -311,7 +311,7 @@ export function GymnasiumSummaryPage() {
             className="flex-1"
             onClick={() => {
               // Restart with same config
-              navigate('/gymnasium/practice');
+              navigate('/practice');
             }}
             style={{
               background: `linear-gradient(to right, ${themeOption.colors.primary}, ${themeOption.colors.secondary})`,

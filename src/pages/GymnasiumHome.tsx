@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, LogOut, Trophy, Zap, Clock, Hash, Dumbbell, Plane } from 'lucide-react';
+import { Play, LogOut, Trophy, Zap, Clock, Hash, Dumbbell } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -45,7 +45,7 @@ export function GymnasiumHomePage() {
     };
     saveCustomConfig(finalConfig);
     sessionStorage.setItem('gymnasiumConfig', JSON.stringify(finalConfig));
-    navigate('/gymnasium/practice');
+    navigate('/practice');
   };
 
   const selectedTheme = THEME_OPTIONS.find(t => t.value === config.theme);
@@ -115,25 +115,6 @@ export function GymnasiumHomePage() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
-          {/* Mode Switcher */}
-          <div className="bg-black/20 rounded-2xl p-3 border border-white/10 mb-4">
-            <div className="flex gap-2">
-              <button
-                onClick={() => navigate('/')}
-                className="flex-1 p-3 rounded-xl bg-white/10 text-white/80 font-bold flex items-center justify-center gap-2 hover:bg-white/20 transition-colors"
-              >
-                <Plane className="w-5 h-5" />
-                Math Dogfight
-              </button>
-              <button
-                className="flex-1 p-3 rounded-xl bg-white text-slate-900 font-bold flex items-center justify-center gap-2"
-              >
-                <Dumbbell className="w-5 h-5" />
-                Word Problems
-              </button>
-            </div>
-          </div>
-
           <h2 className="text-2xl font-bold text-white text-center mb-4">
             Configure Your Workout
           </h2>

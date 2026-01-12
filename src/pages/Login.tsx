@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Loader2 } from 'lucide-react';
+import { Mail, Loader2, Dumbbell } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { isSupabaseConfigured } from '../lib/supabase';
-import { DogfightBackground } from '../components/backgrounds/DogfightBackground';
 
 export function LoginPage() {
   const { signInWithMagicLink, enterDemoMode } = useAuth();
@@ -31,10 +30,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-400 via-sky-600 to-slate-800 flex flex-col items-center justify-center p-4">
-      {/* Epic dogfight background! */}
-      <DogfightBackground />
-
+    <div className="min-h-screen bg-gradient-to-b from-indigo-600 via-purple-700 to-slate-900 flex flex-col items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -49,63 +45,63 @@ export function LoginPage() {
             className="inline-block mb-4"
           >
             <div className="relative inline-block">
-              {/* Explosions behind the jet */}
+              {/* Animated stars around the icon */}
               <motion.span
-                className="absolute -left-12 top-2 text-4xl"
-                animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }}
-                transition={{ duration: 0.6, repeat: Infinity }}
-              >
-                💥
-              </motion.span>
-              <motion.span
-                className="absolute -left-8 -top-4 text-3xl"
-                animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
-                transition={{ duration: 0.5, repeat: Infinity, delay: 0.2 }}
-              >
-                💥
-              </motion.span>
-
-              {/* The jet */}
-              <motion.span
-                className="text-7xl relative z-10"
-                animate={{ x: [0, 5, 0], y: [0, -3, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              >
-                ✈️
-              </motion.span>
-
-              {/* Missiles chasing from behind */}
-              <motion.span
-                className="absolute -left-16 top-1 text-2xl"
-                animate={{ x: [0, 15, 0], opacity: [0.5, 1, 0.5] }}
+                className="absolute -left-8 top-0 text-2xl"
+                animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
-                🚀
+                ⭐
               </motion.span>
               <motion.span
-                className="absolute -left-20 top-6 text-xl"
-                animate={{ x: [0, 12, 0], opacity: [0.4, 0.9, 0.4] }}
-                transition={{ duration: 1.8, repeat: Infinity, delay: 0.4 }}
+                className="absolute -right-8 top-0 text-2xl"
+                animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
               >
-                🚀
+                ⭐
+              </motion.span>
+
+              {/* The dumbbell icon */}
+              <motion.div
+                className="text-7xl relative z-10"
+                animate={{ y: [0, -5, 0], rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Dumbbell className="w-20 h-20 text-white" />
+              </motion.div>
+
+              {/* Math symbols floating around */}
+              <motion.span
+                className="absolute -left-12 top-8 text-xl text-amber-300"
+                animate={{ y: [0, -10, 0], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                ➕
               </motion.span>
               <motion.span
-                className="absolute -left-14 -top-2 text-lg"
-                animate={{ x: [0, 10, 0], opacity: [0.3, 0.8, 0.3] }}
-                transition={{ duration: 1.3, repeat: Infinity, delay: 0.7 }}
+                className="absolute -right-12 top-8 text-xl text-amber-300"
+                animate={{ y: [0, -10, 0], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
               >
-                🚀
+                ✖️
+              </motion.span>
+              <motion.span
+                className="absolute -left-6 -bottom-2 text-lg text-amber-300"
+                animate={{ y: [0, -8, 0], opacity: [0.4, 0.9, 0.4] }}
+                transition={{ duration: 1.8, repeat: Infinity, delay: 0.3 }}
+              >
+                ➗
               </motion.span>
             </div>
           </motion.div>
           <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">
-            Michael's Math Dogfight
+            Michael's Math Gymnasium
           </h1>
-          <p className="text-sky-100 text-lg font-medium">
-            Times Tables and Mental Math with Missiles
+          <p className="text-purple-100 text-lg font-medium">
+            AI-Powered Word Problems for Every Grade
           </p>
-          <p className="text-sky-200 text-base mt-1">
-            Ready for takeoff, pilot?
+          <p className="text-purple-200 text-base mt-1">
+            Ready to train your brain?
           </p>
         </div>
 
@@ -128,7 +124,7 @@ export function LoginPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="pilot@example.com"
+                    placeholder="parent@example.com"
                     className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400"
                     required
                   />
