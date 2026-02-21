@@ -25,6 +25,7 @@ export function Scratchpad({ onClear, className = '', disabled = false }: Scratc
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [currentStroke, setCurrentStroke] = useState<Stroke | null>(null);
   const [isEraser, setIsEraser] = useState(false);
+  const [clearedStrokes, setClearedStrokes] = useState<Stroke[] | null>(null);
 
   const penColor = '#1e293b'; // Slate-800
   const eraserColor = '#f8fafc'; // Slate-50 (background color)
@@ -186,10 +187,19 @@ export function Scratchpad({ onClear, className = '', disabled = false }: Scratc
   };
 
   const handleUndo = () => {
-    setStrokes(prev => prev.slice(0, -1));
+    if (strokes.length === 0 && clearedStrokes) {
+      // Undo the clear: restore all previously cleared strokes
+      setStrokes(clearedStrokes);
+      setClearedStrokes(null);
+    } else {
+      setStrokes(prev => prev.slice(0, -1));
+    }
   };
 
   const handleClear = () => {
+    if (strokes.length > 0) {
+      setClearedStrokes(strokes);
+    }
     setStrokes([]);
     onClear?.();
   };
@@ -232,11 +242,11 @@ export function Scratchpad({ onClear, className = '', disabled = false }: Scratc
           </button>
           <button
             onClick={handleUndo}
-            disabled={disabled || strokes.length === 0}
+            disabled={disabled || (strokes.length === 0 && !clearedStrokes)}
             className={`p-2 rounded-lg bg-white text-slate-600 hover:bg-slate-200 transition-colors ${
-              disabled || strokes.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+              disabled || (strokes.length === 0 && !clearedStrokes) ? 'opacity-50 cursor-not-allowed' : ''
             }`}
-            title="Undo"
+            title={strokes.length === 0 && clearedStrokes ? 'Undo Clear' : 'Undo'}
           >
             <Undo className="w-5 h-5" />
           </button>
