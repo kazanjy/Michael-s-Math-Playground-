@@ -209,7 +209,9 @@ export function HomePage() {
             className="bg-gradient-to-r from-blue-600/30 to-purple-600/30 rounded-xl p-3 mb-4 border border-blue-500/30"
           >
             <div className="text-center">
-              <span className="text-slate-400 text-sm">Current Jet: </span>
+              <span className="text-slate-400 text-sm">
+                Current {xpProgress.currentRank.craftType === 'spacecraft' ? 'Spacecraft' : 'Jet'}:{' '}
+              </span>
               <span className="text-2xl mr-2">{xpProgress.currentRank.jetIcon}</span>
               <span className="text-white font-bold">{xpProgress.currentRank.jet}</span>
             </div>

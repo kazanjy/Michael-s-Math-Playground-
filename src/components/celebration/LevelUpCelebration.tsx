@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { RANKS, ERA_BADGES } from '../../types';
 import type { Rank } from '../../types';
+
+const FINAL_LEVEL = RANKS[RANKS.length - 1].level;
 
 interface LevelUpCelebrationProps {
   oldRank: Rank;
@@ -334,8 +337,17 @@ function JetTrails({ count, fullScreen = false }: { count: number; fullScreen?: 
 // Get congratulatory message based on rank - uses actual rank data
 function getCongratMessage(rank: Rank): string {
   // Special messages for milestone ranks
-  if (rank.level === 30) {
+  if (rank.level === FINAL_LEVEL) {
     return `${rank.title}! You've reached the pinnacle - the legendary ${rank.jet} is yours!`;
+  }
+  if (rank.craftType === 'spacecraft') {
+    return `${rank.title}! The ${rank.jet} is fuelled and cleared for launch!`;
+  }
+  if (rank.level >= 41) {
+    return `${rank.title}! The top-secret ${rank.jet} is yours to fly!`;
+  }
+  if (rank.level >= 31) {
+    return `${rank.title}! The rare ${rank.jet} rolls into your hangar!`;
   }
   if (rank.level >= 28) {
     return `${rank.title}! You've earned the ultra-rare ${rank.jet}!`;
@@ -356,27 +368,27 @@ function getCongratMessage(rank: Rank): string {
   return `Congratulations, ${rank.title}! Keep training to unlock new jets!`;
 }
 
-// Get unlocks for a rank change - only shows jet when it actually changes
+// Get unlocks for a rank change - only shows craft when it actually changes
 function getUnlocksForRank(oldRank: Rank, newRank: Rank): string[] {
   const unlocks: string[] = [];
 
-  // Check if jet changed
+  // Check if craft changed
   if (newRank.jet !== oldRank.jet) {
     unlocks.push(`${newRank.jetIcon} ${newRank.jet}`);
   }
 
-  // Special milestone unlocks
-  if (newRank.level === 30) {
-    unlocks.push('🏆 Living Legend Badge');
+  // Crossing into a new career phase earns its badge
+  if (newRank.era !== oldRank.era) {
+    const badge = ERA_BADGES[newRank.era];
+    if (badge) {
+      unlocks.push(badge);
+    }
+  }
+
+  // Top of the whole ladder
+  if (newRank.level === FINAL_LEVEL) {
+    unlocks.push('🏆 Cosmic Legend Badge');
     unlocks.push('👑 Complete Fleet Mastery');
-  } else if (newRank.level >= 28 && oldRank.level < 28) {
-    unlocks.push('🌟 Ace Pilot Badge');
-  } else if (newRank.level >= 22 && oldRank.level < 22) {
-    unlocks.push('⚡ Stealth Squadron');
-  } else if (newRank.level >= 16 && oldRank.level < 16) {
-    unlocks.push('🎖️ Officer Corps');
-  } else if (newRank.level >= 10 && oldRank.level < 10) {
-    unlocks.push('💎 Senior NCO');
   }
 
   return unlocks;

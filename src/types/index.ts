@@ -32,66 +32,118 @@ export interface ChildProfile {
 }
 
 // Rank definitions
+export type CraftType = 'aircraft' | 'spacecraft';
+
 export interface Rank {
   level: number;
   name: string;
   title: string;
   xpRequired: number;
-  icon: string;      // Emoji icon for rank
-  jet: string;       // Jet name
-  jetIcon: string;   // Jet emoji
+  icon: string;         // Emoji icon for rank
+  jet: string;          // Craft name (aircraft or spacecraft)
+  jetIcon: string;      // Craft emoji
+  craftType: CraftType; // Whether the craft flies in air or space
+  era: string;          // Career phase this rank belongs to
 }
 
 export const RANKS: Rank[] = [
-  // Levels 1-3: Training Phase → T-38 Talon
-  { level: 1, name: 'Cadet', title: 'Cadet', xpRequired: 0, icon: '🎖️', jet: 'T-38 Talon', jetIcon: '🛩️' },
-  { level: 2, name: 'Senior Cadet', title: 'Senior Cadet', xpRequired: 50, icon: '🎖️🎖️', jet: 'T-38 Talon', jetIcon: '🛩️' },
-  { level: 3, name: 'Lead Cadet', title: 'Lead Cadet', xpRequired: 120, icon: '🎖️🎖️🎖️', jet: 'T-38 Talon', jetIcon: '🛩️' },
+  // Levels 1-3: Training → T-38 Talon
+  { level: 1, name: 'Cadet', title: 'Cadet', xpRequired: 0, icon: '🎖️', jet: 'T-38 Talon', jetIcon: '🛩️', craftType: 'aircraft', era: 'Training' },
+  { level: 2, name: 'Senior Cadet', title: 'Senior Cadet', xpRequired: 50, icon: '🎖️🎖️', jet: 'T-38 Talon', jetIcon: '🛩️', craftType: 'aircraft', era: 'Training' },
+  { level: 3, name: 'Lead Cadet', title: 'Lead Cadet', xpRequired: 120, icon: '🎖️🎖️🎖️', jet: 'T-38 Talon', jetIcon: '🛩️', craftType: 'aircraft', era: 'Training' },
 
   // Levels 4-6: Basic Enlisted → F-4 Phantom
-  { level: 4, name: 'Airman', title: 'Airman', xpRequired: 200, icon: '🪖', jet: 'F-4 Phantom', jetIcon: '✈️' },
-  { level: 5, name: 'Airman 1st Class', title: 'Airman 1st Class', xpRequired: 300, icon: '🪖⭐', jet: 'F-4 Phantom', jetIcon: '✈️' },
-  { level: 6, name: 'Senior Airman', title: 'Senior Airman', xpRequired: 425, icon: '🪖⭐⭐', jet: 'F-4 Phantom', jetIcon: '✈️' },
+  { level: 4, name: 'Airman', title: 'Airman', xpRequired: 200, icon: '🪖', jet: 'F-4 Phantom', jetIcon: '✈️', craftType: 'aircraft', era: 'Basic Enlisted' },
+  { level: 5, name: 'Airman 1st Class', title: 'Airman 1st Class', xpRequired: 300, icon: '🪖⭐', jet: 'F-4 Phantom', jetIcon: '✈️', craftType: 'aircraft', era: 'Basic Enlisted' },
+  { level: 6, name: 'Senior Airman', title: 'Senior Airman', xpRequired: 425, icon: '🪖⭐⭐', jet: 'F-4 Phantom', jetIcon: '✈️', craftType: 'aircraft', era: 'Basic Enlisted' },
 
   // Levels 7-9: NCO → F-5 Tiger
-  { level: 7, name: 'Corporal', title: 'Corporal', xpRequired: 575, icon: '💎', jet: 'F-5 Tiger', jetIcon: '🐯' },
-  { level: 8, name: 'Sergeant', title: 'Sergeant', xpRequired: 750, icon: '💎💎', jet: 'F-5 Tiger', jetIcon: '🐯' },
-  { level: 9, name: 'Staff Sergeant', title: 'Staff Sergeant', xpRequired: 950, icon: '💎💎💎', jet: 'F-5 Tiger', jetIcon: '🐯' },
+  { level: 7, name: 'Corporal', title: 'Corporal', xpRequired: 575, icon: '💎', jet: 'F-5 Tiger', jetIcon: '🐯', craftType: 'aircraft', era: 'NCO' },
+  { level: 8, name: 'Sergeant', title: 'Sergeant', xpRequired: 750, icon: '💎💎', jet: 'F-5 Tiger', jetIcon: '🐯', craftType: 'aircraft', era: 'NCO' },
+  { level: 9, name: 'Staff Sergeant', title: 'Staff Sergeant', xpRequired: 950, icon: '💎💎💎', jet: 'F-5 Tiger', jetIcon: '🐯', craftType: 'aircraft', era: 'NCO' },
 
   // Levels 10-12: Senior NCO → F-14 Tomcat
-  { level: 10, name: 'Tech Sergeant', title: 'Tech Sergeant', xpRequired: 1175, icon: '🔷', jet: 'F-14 Tomcat', jetIcon: '🐱' },
-  { level: 11, name: 'Master Sergeant', title: 'Master Sergeant', xpRequired: 1425, icon: '🔷🔷', jet: 'F-14 Tomcat', jetIcon: '🐱' },
-  { level: 12, name: 'Chief Master Sergeant', title: 'Chief Master Sgt', xpRequired: 1700, icon: '🔷🔷🔷', jet: 'F-14 Tomcat', jetIcon: '🐱' },
+  { level: 10, name: 'Tech Sergeant', title: 'Tech Sergeant', xpRequired: 1175, icon: '🔷', jet: 'F-14 Tomcat', jetIcon: '🐱', craftType: 'aircraft', era: 'Senior NCO' },
+  { level: 11, name: 'Master Sergeant', title: 'Master Sergeant', xpRequired: 1425, icon: '🔷🔷', jet: 'F-14 Tomcat', jetIcon: '🐱', craftType: 'aircraft', era: 'Senior NCO' },
+  { level: 12, name: 'Chief Master Sergeant', title: 'Chief Master Sgt', xpRequired: 1700, icon: '🔷🔷🔷', jet: 'F-14 Tomcat', jetIcon: '🐱', craftType: 'aircraft', era: 'Senior NCO' },
 
   // Levels 13-15: Junior Officer → F-15 Eagle
-  { level: 13, name: '2nd Lieutenant', title: '2nd Lieutenant', xpRequired: 2000, icon: '🎗️', jet: 'F-15 Eagle', jetIcon: '🦅' },
-  { level: 14, name: '1st Lieutenant', title: '1st Lieutenant', xpRequired: 2350, icon: '🎗️🎗️', jet: 'F-15 Eagle', jetIcon: '🦅' },
-  { level: 15, name: 'Senior Lieutenant', title: 'Senior Lieutenant', xpRequired: 2750, icon: '🎗️🎗️🎗️', jet: 'F-15 Eagle', jetIcon: '🦅' },
+  { level: 13, name: '2nd Lieutenant', title: '2nd Lieutenant', xpRequired: 2000, icon: '🎗️', jet: 'F-15 Eagle', jetIcon: '🦅', craftType: 'aircraft', era: 'Junior Officer' },
+  { level: 14, name: '1st Lieutenant', title: '1st Lieutenant', xpRequired: 2350, icon: '🎗️🎗️', jet: 'F-15 Eagle', jetIcon: '🦅', craftType: 'aircraft', era: 'Junior Officer' },
+  { level: 15, name: 'Senior Lieutenant', title: 'Senior Lieutenant', xpRequired: 2750, icon: '🎗️🎗️🎗️', jet: 'F-15 Eagle', jetIcon: '🦅', craftType: 'aircraft', era: 'Junior Officer' },
 
   // Levels 16-18: Field Officer → F-16 Falcon
-  { level: 16, name: 'Captain', title: 'Captain', xpRequired: 3200, icon: '🏅', jet: 'F-16 Falcon', jetIcon: '🦅' },
-  { level: 17, name: 'Major', title: 'Major', xpRequired: 3700, icon: '🏅🏅', jet: 'F-16 Falcon', jetIcon: '🦅' },
-  { level: 18, name: 'Lieutenant Colonel', title: 'Lt. Colonel', xpRequired: 4250, icon: '🏅🏅🏅', jet: 'F-16 Falcon', jetIcon: '🦅' },
+  { level: 16, name: 'Captain', title: 'Captain', xpRequired: 3200, icon: '🏅', jet: 'F-16 Falcon', jetIcon: '🦅', craftType: 'aircraft', era: 'Field Officer' },
+  { level: 17, name: 'Major', title: 'Major', xpRequired: 3700, icon: '🏅🏅', jet: 'F-16 Falcon', jetIcon: '🦅', craftType: 'aircraft', era: 'Field Officer' },
+  { level: 18, name: 'Lieutenant Colonel', title: 'Lt. Colonel', xpRequired: 4250, icon: '🏅🏅🏅', jet: 'F-16 Falcon', jetIcon: '🦅', craftType: 'aircraft', era: 'Field Officer' },
 
   // Levels 19-21: Senior Officer → F/A-18 Hornet
-  { level: 19, name: 'Colonel', title: 'Colonel', xpRequired: 4900, icon: '⭐', jet: 'F/A-18 Hornet', jetIcon: '🐝' },
-  { level: 20, name: 'Senior Colonel', title: 'Senior Colonel', xpRequired: 5600, icon: '⭐⭐', jet: 'F/A-18 Hornet', jetIcon: '🐝' },
-  { level: 21, name: 'Brigadier General', title: 'Brigadier General', xpRequired: 6400, icon: '⭐⭐⭐', jet: 'F/A-18 Hornet', jetIcon: '🐝' },
+  { level: 19, name: 'Colonel', title: 'Colonel', xpRequired: 4900, icon: '⭐', jet: 'F/A-18 Hornet', jetIcon: '🐝', craftType: 'aircraft', era: 'Senior Officer' },
+  { level: 20, name: 'Senior Colonel', title: 'Senior Colonel', xpRequired: 5600, icon: '⭐⭐', jet: 'F/A-18 Hornet', jetIcon: '🐝', craftType: 'aircraft', era: 'Senior Officer' },
+  { level: 21, name: 'Brigadier General', title: 'Brigadier General', xpRequired: 6400, icon: '⭐⭐⭐', jet: 'F/A-18 Hornet', jetIcon: '🐝', craftType: 'aircraft', era: 'Senior Officer' },
 
   // Levels 22-24: General Officer → F-22 Raptor
-  { level: 22, name: 'Major General', title: 'Major General', xpRequired: 7300, icon: '🦅', jet: 'F-22 Raptor', jetIcon: '⚡' },
-  { level: 23, name: 'Lieutenant General', title: 'Lt. General', xpRequired: 8300, icon: '🦅⭐', jet: 'F-22 Raptor', jetIcon: '⚡' },
-  { level: 24, name: 'General', title: 'General', xpRequired: 9500, icon: '🦅⭐⭐', jet: 'F-22 Raptor', jetIcon: '⚡' },
+  { level: 22, name: 'Major General', title: 'Major General', xpRequired: 7300, icon: '🦅', jet: 'F-22 Raptor', jetIcon: '⚡', craftType: 'aircraft', era: 'General Officer' },
+  { level: 23, name: 'Lieutenant General', title: 'Lt. General', xpRequired: 8300, icon: '🦅⭐', jet: 'F-22 Raptor', jetIcon: '⚡', craftType: 'aircraft', era: 'General Officer' },
+  { level: 24, name: 'General', title: 'General', xpRequired: 9500, icon: '🦅⭐⭐', jet: 'F-22 Raptor', jetIcon: '⚡', craftType: 'aircraft', era: 'General Officer' },
 
   // Levels 25-27: Command → F-35 Lightning
-  { level: 25, name: 'Air Marshal', title: 'Air Marshal', xpRequired: 10900, icon: '⚔️', jet: 'F-35 Lightning', jetIcon: '⚡' },
-  { level: 26, name: 'Sky Marshal', title: 'Sky Marshal', xpRequired: 12500, icon: '⚔️⚔️', jet: 'F-35 Lightning', jetIcon: '⚡' },
-  { level: 27, name: 'Supreme Commander', title: 'Supreme Commander', xpRequired: 14300, icon: '👑', jet: 'F-35 Lightning', jetIcon: '⚡' },
+  { level: 25, name: 'Air Marshal', title: 'Air Marshal', xpRequired: 10900, icon: '⚔️', jet: 'F-35 Lightning', jetIcon: '⚡', craftType: 'aircraft', era: 'Command' },
+  { level: 26, name: 'Sky Marshal', title: 'Sky Marshal', xpRequired: 12500, icon: '⚔️⚔️', jet: 'F-35 Lightning', jetIcon: '⚡', craftType: 'aircraft', era: 'Command' },
+  { level: 27, name: 'Supreme Commander', title: 'Supreme Commander', xpRequired: 14300, icon: '👑', jet: 'F-35 Lightning', jetIcon: '⚡', craftType: 'aircraft', era: 'Command' },
 
-  // Levels 28-30: Legendary → SR-71 Blackbird & X-15
-  { level: 28, name: 'Ace Pilot', title: 'Ace Pilot', xpRequired: 16500, icon: '🏆', jet: 'SR-71 Blackbird', jetIcon: '🦇' },
-  { level: 29, name: 'Top Gun', title: 'Top Gun', xpRequired: 19000, icon: '🏆⭐', jet: 'SR-71 Blackbird', jetIcon: '🦇' },
-  { level: 30, name: 'Living Legend', title: 'Living Legend ★', xpRequired: 22000, icon: '🏆👑', jet: 'X-15 Rocket Plane', jetIcon: '🚀' },
+  // Levels 28-30: Legendary → SR-71 Blackbird, X-15 Rocket Plane
+  { level: 28, name: 'Ace Pilot', title: 'Ace Pilot', xpRequired: 16500, icon: '🏆', jet: 'SR-71 Blackbird', jetIcon: '🦇', craftType: 'aircraft', era: 'Legendary' },
+  { level: 29, name: 'Top Gun', title: 'Top Gun', xpRequired: 19000, icon: '🏆⭐', jet: 'SR-71 Blackbird', jetIcon: '🦇', craftType: 'aircraft', era: 'Legendary' },
+  { level: 30, name: 'Living Legend', title: 'Living Legend', xpRequired: 22000, icon: '🏆👑', jet: 'X-15 Rocket Plane', jetIcon: '🚀', craftType: 'aircraft', era: 'Legendary' },
+
+  // Levels 31-40: Test Pilot Corps → A-10 Thunderbolt II, AV-8B Harrier II, Eurofighter Typhoon, Dassault Rafale, Saab Gripen
+  { level: 31, name: 'Test Pilot', title: 'Test Pilot', xpRequired: 25300, icon: '🥽', jet: 'A-10 Thunderbolt II', jetIcon: '🐗', craftType: 'aircraft', era: 'Test Pilot Corps' },
+  { level: 32, name: 'Senior Test Pilot', title: 'Senior Test Pilot', xpRequired: 28700, icon: '🥽⭐', jet: 'A-10 Thunderbolt II', jetIcon: '🐗', craftType: 'aircraft', era: 'Test Pilot Corps' },
+  { level: 33, name: 'Chief Test Pilot', title: 'Chief Test Pilot', xpRequired: 32200, icon: '🪂', jet: 'AV-8B Harrier II', jetIcon: '🦘', craftType: 'aircraft', era: 'Test Pilot Corps' },
+  { level: 34, name: 'Sound Breaker', title: 'Sound Breaker', xpRequired: 35800, icon: '🪂⭐', jet: 'AV-8B Harrier II', jetIcon: '🦘', craftType: 'aircraft', era: 'Test Pilot Corps' },
+  { level: 35, name: 'Supersonic Ace', title: 'Supersonic Ace', xpRequired: 39500, icon: '💥', jet: 'Eurofighter Typhoon', jetIcon: '🌪️', craftType: 'aircraft', era: 'Test Pilot Corps' },
+  { level: 36, name: 'Mach 2 Master', title: 'Mach 2 Master', xpRequired: 43300, icon: '💥⭐', jet: 'Eurofighter Typhoon', jetIcon: '🌪️', craftType: 'aircraft', era: 'Test Pilot Corps' },
+  { level: 37, name: 'Mach 3 Master', title: 'Mach 3 Master', xpRequired: 47100, icon: '⚡', jet: 'Dassault Rafale', jetIcon: '🌩️', craftType: 'aircraft', era: 'Test Pilot Corps' },
+  { level: 38, name: 'Storm Commander', title: 'Storm Commander', xpRequired: 51000, icon: '⚡⭐', jet: 'Dassault Rafale', jetIcon: '🌩️', craftType: 'aircraft', era: 'Test Pilot Corps' },
+  { level: 39, name: 'Sky Sovereign', title: 'Sky Sovereign', xpRequired: 55100, icon: '🏵️', jet: 'Saab Gripen', jetIcon: '🦁', craftType: 'aircraft', era: 'Test Pilot Corps' },
+  { level: 40, name: 'Master of the Skies', title: 'Master of the Skies', xpRequired: 59300, icon: '🏵️⭐', jet: 'Saab Gripen', jetIcon: '🦁', craftType: 'aircraft', era: 'Test Pilot Corps' },
+
+  // Levels 41-50: Black Projects → F-117 Nighthawk, B-2 Spirit, B-1B Lancer, XB-70 Valkyrie, SR-72 Darkstar
+  { level: 41, name: 'Shadow Pilot', title: 'Shadow Pilot', xpRequired: 63600, icon: '🕶️', jet: 'F-117 Nighthawk', jetIcon: '🥷', craftType: 'aircraft', era: 'Black Projects' },
+  { level: 42, name: 'Shadow Ace', title: 'Shadow Ace', xpRequired: 68000, icon: '🕶️⭐', jet: 'F-117 Nighthawk', jetIcon: '🥷', craftType: 'aircraft', era: 'Black Projects' },
+  { level: 43, name: 'Stealth Master', title: 'Stealth Master', xpRequired: 72500, icon: '👻', jet: 'B-2 Spirit', jetIcon: '🔺', craftType: 'aircraft', era: 'Black Projects' },
+  { level: 44, name: 'Ghost Commander', title: 'Ghost Commander', xpRequired: 77100, icon: '👻⭐', jet: 'B-2 Spirit', jetIcon: '🔺', craftType: 'aircraft', era: 'Black Projects' },
+  { level: 45, name: 'Strike Commander', title: 'Strike Commander', xpRequired: 81800, icon: '🎯', jet: 'B-1B Lancer', jetIcon: '🗡️', craftType: 'aircraft', era: 'Black Projects' },
+  { level: 46, name: 'Lancer Legend', title: 'Lancer Legend', xpRequired: 86600, icon: '🎯⭐', jet: 'B-1B Lancer', jetIcon: '🗡️', craftType: 'aircraft', era: 'Black Projects' },
+  { level: 47, name: 'Valkyrie Pilot', title: 'Valkyrie Pilot', xpRequired: 91600, icon: '☁️', jet: 'XB-70 Valkyrie', jetIcon: '🕊️', craftType: 'aircraft', era: 'Black Projects' },
+  { level: 48, name: 'Stratosphere Ace', title: 'Stratosphere Ace', xpRequired: 96700, icon: '☁️⭐', jet: 'XB-70 Valkyrie', jetIcon: '🕊️', craftType: 'aircraft', era: 'Black Projects' },
+  { level: 49, name: 'Hypersonic Pilot', title: 'Hypersonic Pilot', xpRequired: 101900, icon: '💨', jet: 'SR-72 Darkstar', jetIcon: '🌑', craftType: 'aircraft', era: 'Black Projects' },
+  { level: 50, name: 'Edge of Space Ace', title: 'Edge of Space Ace', xpRequired: 107300, icon: '💨⭐', jet: 'SR-72 Darkstar', jetIcon: '🌑', craftType: 'aircraft', era: 'Black Projects' },
+
+  // Levels 51-60: Spaceflight Academy → SpaceShipOne, New Shepard, X-37B Spaceplane, Soyuz, Space Shuttle Atlantis
+  { level: 51, name: 'Astronaut Candidate', title: 'Astronaut Candidate', xpRequired: 112800, icon: '🧑‍🚀', jet: 'SpaceShipOne', jetIcon: '✨', craftType: 'spacecraft', era: 'Spaceflight Academy' },
+  { level: 52, name: 'Astronaut', title: 'Astronaut', xpRequired: 118500, icon: '🧑‍🚀⭐', jet: 'SpaceShipOne', jetIcon: '✨', craftType: 'spacecraft', era: 'Spaceflight Academy' },
+  { level: 53, name: 'Mission Specialist', title: 'Mission Specialist', xpRequired: 124300, icon: '🔧', jet: 'New Shepard', jetIcon: '🪶', craftType: 'spacecraft', era: 'Spaceflight Academy' },
+  { level: 54, name: 'Flight Engineer', title: 'Flight Engineer', xpRequired: 130300, icon: '🔧⭐', jet: 'New Shepard', jetIcon: '🪶', craftType: 'spacecraft', era: 'Spaceflight Academy' },
+  { level: 55, name: 'Orbital Pilot', title: 'Orbital Pilot', xpRequired: 136400, icon: '🔭', jet: 'X-37B Spaceplane', jetIcon: '🤖', craftType: 'spacecraft', era: 'Spaceflight Academy' },
+  { level: 56, name: 'Orbital Ace', title: 'Orbital Ace', xpRequired: 142700, icon: '🔭⭐', jet: 'X-37B Spaceplane', jetIcon: '🤖', craftType: 'spacecraft', era: 'Spaceflight Academy' },
+  { level: 57, name: 'Payload Commander', title: 'Payload Commander', xpRequired: 149100, icon: '📡', jet: 'Soyuz', jetIcon: '☄️', craftType: 'spacecraft', era: 'Spaceflight Academy' },
+  { level: 58, name: 'Station Commander', title: 'Station Commander', xpRequired: 155700, icon: '📡⭐', jet: 'Soyuz', jetIcon: '☄️', craftType: 'spacecraft', era: 'Spaceflight Academy' },
+  { level: 59, name: 'Shuttle Commander', title: 'Shuttle Commander', xpRequired: 162500, icon: '🎛️', jet: 'Space Shuttle Atlantis', jetIcon: '🛰️', craftType: 'spacecraft', era: 'Spaceflight Academy' },
+  { level: 60, name: 'Flight Director', title: 'Flight Director', xpRequired: 169400, icon: '🎛️⭐', jet: 'Space Shuttle Atlantis', jetIcon: '🛰️', craftType: 'spacecraft', era: 'Spaceflight Academy' },
+
+  // Levels 61-70: Deep Space Command → Crew Dragon, Saturn V, Starship, Orion, Voyager 1
+  { level: 61, name: 'Orbital Commander', title: 'Orbital Commander', xpRequired: 176500, icon: '🌍', jet: 'Crew Dragon', jetIcon: '🐉', craftType: 'spacecraft', era: 'Deep Space Command' },
+  { level: 62, name: 'Deep Space Candidate', title: 'Deep Space Candidate', xpRequired: 183800, icon: '🌍⭐', jet: 'Crew Dragon', jetIcon: '🐉', craftType: 'spacecraft', era: 'Deep Space Command' },
+  { level: 63, name: 'Moonwalker', title: 'Moonwalker', xpRequired: 191300, icon: '🌕', jet: 'Saturn V', jetIcon: '🌙', craftType: 'spacecraft', era: 'Deep Space Command' },
+  { level: 64, name: 'Lunar Commander', title: 'Lunar Commander', xpRequired: 199000, icon: '🌕⭐', jet: 'Saturn V', jetIcon: '🌙', craftType: 'spacecraft', era: 'Deep Space Command' },
+  { level: 65, name: 'Mars Pioneer', title: 'Mars Pioneer', xpRequired: 206900, icon: '🔴', jet: 'Starship', jetIcon: '🛸', craftType: 'spacecraft', era: 'Deep Space Command' },
+  { level: 66, name: 'Mars Commander', title: 'Mars Commander', xpRequired: 215000, icon: '🔴⭐', jet: 'Starship', jetIcon: '🛸', craftType: 'spacecraft', era: 'Deep Space Command' },
+  { level: 67, name: 'Deep Space Explorer', title: 'Deep Space Explorer', xpRequired: 223300, icon: '🌟', jet: 'Orion', jetIcon: '🪐', craftType: 'spacecraft', era: 'Deep Space Command' },
+  { level: 68, name: 'Solar System Master', title: 'Solar System Master', xpRequired: 231800, icon: '🌟⭐', jet: 'Orion', jetIcon: '🪐', craftType: 'spacecraft', era: 'Deep Space Command' },
+  { level: 69, name: 'Star Voyager', title: 'Star Voyager', xpRequired: 240600, icon: '🌠', jet: 'Voyager 1', jetIcon: '🌌', craftType: 'spacecraft', era: 'Deep Space Command' },
+  { level: 70, name: 'Cosmic Legend', title: 'Cosmic Legend ★', xpRequired: 249600, icon: '🏆🌌', jet: 'Voyager 1', jetIcon: '🌌', craftType: 'spacecraft', era: 'Deep Space Command' },
 ];
 
 // Session configuration
@@ -431,3 +483,16 @@ export interface SessionResourceStats {
   dogfightsWon: number;
   dogfightsLost: number;
 }
+
+// Badges awarded when a pilot crosses into a major career phase.
+// Only the milestone eras appear here - eras without an entry award no badge.
+export const ERA_BADGES: Record<string, string> = {
+  'Senior NCO': '💎 Senior NCO',
+  'Field Officer': '🎖️ Officer Corps',
+  'General Officer': '⚡ Stealth Squadron',
+  'Legendary': '🌟 Ace Pilot Badge',
+  'Test Pilot Corps': '🥽 Test Pilot Wings',
+  'Black Projects': '🕶️ Black Projects Clearance',
+  'Spaceflight Academy': '🧑‍🚀 Astronaut Wings',
+  'Deep Space Command': '🌌 Deep Space Command',
+};
