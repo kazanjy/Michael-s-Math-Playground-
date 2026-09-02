@@ -385,7 +385,7 @@ export function GymnasiumPracticePage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col transition-colors duration-500"
+      className="h-screen flex flex-col transition-colors duration-500 overflow-hidden"
       style={{
         background: `linear-gradient(to bottom, ${themeOption.colors.primary}dd, ${themeOption.colors.secondary}dd, #0f172a)`,
       }}
