@@ -6,6 +6,7 @@ import { GymnasiumNumberPad } from '../components/calculator/GymnasiumNumberPad'
 import { Scratchpad, type ScratchpadHandle } from '../components/scratchpad/Scratchpad';
 import { useAuth } from '../contexts/AuthContext';
 import { generateQuestion, checkAnswer, generateFallbackQuestion } from '../lib/questionService';
+import { analyzeWork, type WorkAnalysis } from '../lib/historyService';
 import {
   type GymnasiumSessionConfig,
   type GymnasiumQuestion,
@@ -74,6 +75,7 @@ export function GymnasiumPracticePage() {
   // Scratchpad ref for capturing work images
   const scratchpadRef = useRef<ScratchpadHandle>(null);
   const [scratchpadImages] = useState(() => new Map<string, string>());
+  const [workAnalyses] = useState(() => new Map<string, WorkAnalysis>());
 
   // Keypad config based on grade
   const keypadConfig = getKeypadConfigForGrade(config.gradeLevel);
@@ -129,6 +131,7 @@ export function GymnasiumPracticePage() {
         incorrectCount: answers.filter(a => !a.isCorrect).length,
         bestStreak,
         scratchpadImages: Object.fromEntries(scratchpadImages),
+        workAnalyses: Object.fromEntries(workAnalyses),
       };
       sessionStorage.setItem('gymnasiumResult', JSON.stringify(sessionData));
 
@@ -138,7 +141,7 @@ export function GymnasiumPracticePage() {
 
       navigate('/summary');
     }
-  }, [isSessionComplete, isProcessing, isLoadingQuestion, answers, totalXp, elapsedTime, config, currentChild, updateChildXp, navigate, bestStreak, scratchpadImages]);
+  }, [isSessionComplete, isProcessing, isLoadingQuestion, answers, totalXp, elapsedTime, config, currentChild, updateChildXp, navigate, bestStreak, scratchpadImages, workAnalyses]);
 
   // Load the next question
   const loadNextQuestion = useCallback(async (previousQuestion?: GymnasiumQuestion, isRetry?: boolean, retryGenre?: string) => {
@@ -319,6 +322,22 @@ export function GymnasiumPracticePage() {
         );
       }
 
+      // Analyze scratchpad work in the background (first wrong attempt only)
+      if (newAttempts === 1 && scratchpadImage) {
+        analyzeWork({
+          questionText: currentQuestion.questionText,
+          correctAnswer: currentQuestion.correctAnswer,
+          userAnswer,
+          genre: currentQuestion.genre,
+          gradeLevel: config.gradeLevel,
+          scratchpadImage,
+        }).then(analysis => {
+          if (analysis) {
+            workAnalyses.set(currentQuestion.id, analysis);
+          }
+        });
+      }
+
       // Show feedback with correct answer and explanation
       setFeedback({
         isCorrect: false,
@@ -369,6 +388,7 @@ export function GymnasiumPracticePage() {
         incorrectCount: answers.filter(a => !a.isCorrect).length,
         bestStreak,
         scratchpadImages: Object.fromEntries(scratchpadImages),
+        workAnalyses: Object.fromEntries(workAnalyses),
       };
       sessionStorage.setItem('gymnasiumResult', JSON.stringify(sessionData));
 

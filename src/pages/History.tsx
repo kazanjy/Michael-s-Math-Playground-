@@ -254,6 +254,25 @@ export function HistoryPage() {
                                         <p className="text-white text-sm leading-relaxed">{q.explanation}</p>
                                       </div>
 
+                                      {/* AI Work Analysis (wrong answers only) */}
+                                      {!q.is_correct && q.work_analysis && (
+                                        <div className="bg-amber-500/10 rounded-lg p-3 border border-amber-500/20 space-y-2">
+                                          <p className="text-xs text-amber-400 font-medium">Scratchpad Analysis</p>
+                                          <div>
+                                            <p className="text-xs text-emerald-400">What you did well:</p>
+                                            <p className="text-white text-sm">{q.work_analysis.whatYouDidWell}</p>
+                                          </div>
+                                          <div>
+                                            <p className="text-xs text-red-400">Where it went wrong:</p>
+                                            <p className="text-white text-sm">{q.work_analysis.whereYouWentWrong}</p>
+                                          </div>
+                                          <div>
+                                            <p className="text-xs text-blue-400">How to fix it:</p>
+                                            <p className="text-white text-sm">{q.work_analysis.howToFixIt}</p>
+                                          </div>
+                                        </div>
+                                      )}
+
                                       {/* Time comparison */}
                                       <div className="flex items-center gap-2 text-sm">
                                         <Clock className="w-4 h-4 text-white/40" />

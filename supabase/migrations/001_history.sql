@@ -31,6 +31,7 @@ create table question_history (
   time_spent_ms int not null,
   attempts int not null default 1,
   scratchpad_url text,           -- Supabase Storage URL for the scratchpad image
+  work_analysis jsonb,           -- AI vision analysis of scratchpad work (wrong answers only)
   created_at timestamptz not null default now()
 );
 

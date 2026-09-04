@@ -32,7 +32,14 @@ export interface QuestionRecord {
   time_spent_ms: number;
   attempts: number;
   scratchpad_url?: string;
+  work_analysis?: WorkAnalysis;
   created_at: string;
+}
+
+export interface WorkAnalysis {
+  whatYouDidWell: string;
+  whereYouWentWrong: string;
+  howToFixIt: string;
 }
 
 export interface GenreStats {
@@ -87,12 +94,13 @@ export async function saveSession(
   elapsedTimeMs: number,
   bestStreak: number,
   scratchpadImages: Map<string, string>,
+  workAnalyses?: Map<string, WorkAnalysis>,
 ): Promise<string | null> {
   const correctCount = answers.filter(a => a.isCorrect).length;
   const incorrectCount = answers.filter(a => !a.isCorrect).length;
 
   if (!isSupabaseConfigured()) {
-    return saveDemoSession(childId, config, answers, totalXp, elapsedTimeMs, bestStreak, correctCount, incorrectCount, scratchpadImages);
+    return saveDemoSession(childId, config, answers, totalXp, elapsedTimeMs, bestStreak, correctCount, incorrectCount, scratchpadImages, workAnalyses);
   }
 
   try {
@@ -141,6 +149,7 @@ export async function saveSession(
           time_spent_ms: answer.timeSpentMs,
           attempts: answer.attempts,
           scratchpad_url: scratchpadUrl,
+          work_analysis: workAnalyses?.get(answer.questionId) || null,
         };
       })
     );
@@ -172,6 +181,7 @@ function saveDemoSession(
   correctCount: number,
   incorrectCount: number,
   scratchpadImages: Map<string, string>,
+  workAnalyses?: Map<string, WorkAnalysis>,
 ): string | null {
   const sessionId = crypto.randomUUID();
   const now = new Date().toISOString();
@@ -207,6 +217,7 @@ function saveDemoSession(
     time_spent_ms: answer.timeSpentMs,
     attempts: answer.attempts,
     scratchpad_url: scratchpadImages.get(answer.questionId),
+    work_analysis: workAnalyses?.get(answer.questionId),
     created_at: now,
   }));
 
@@ -365,4 +376,26 @@ export async function getQuestionComparison(
   const percentile = `${Math.round((fasterCount / times.length) * 100)}%`;
 
   return { avgTimeMs, fasterThanAvg, percentile };
+}
+
+export async function analyzeWork(params: {
+  questionText: string;
+  correctAnswer: string;
+  userAnswer: string;
+  genre: string;
+  gradeLevel: string;
+  scratchpadImage: string;
+}): Promise<WorkAnalysis | null> {
+  try {
+    const response = await fetch('/api/analyze-work', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
 }

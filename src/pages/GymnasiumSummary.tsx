@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Home, RotateCcw, Trophy, Zap, Target, Clock, Check, X, ChevronDown, ChevronUp, History } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
-import { saveSession } from '../lib/historyService';
+import { saveSession, type WorkAnalysis } from '../lib/historyService';
 import {
   type GymnasiumSessionConfig,
   type GymnasiumAnswer,
@@ -21,6 +21,7 @@ interface SessionResult {
   incorrectCount: number;
   bestStreak: number;
   scratchpadImages?: Record<string, string>;
+  workAnalyses?: Record<string, WorkAnalysis>;
 }
 
 export function GymnasiumSummaryPage() {
@@ -53,6 +54,9 @@ export function GymnasiumSummaryPage() {
     const imageMap = new Map<string, string>(
       Object.entries(result.scratchpadImages || {})
     );
+    const analysisMap = new Map<string, WorkAnalysis>(
+      Object.entries(result.workAnalyses || {}) as [string, WorkAnalysis][]
+    );
 
     saveSession(
       childId,
@@ -62,6 +66,7 @@ export function GymnasiumSummaryPage() {
       result.elapsedTimeMs,
       result.bestStreak,
       imageMap,
+      analysisMap,
     ).catch(err => console.error('Failed to save session history:', err));
   }, [result, currentChild]);
 
