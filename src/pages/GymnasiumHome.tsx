@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, LogOut, Trophy, Zap, Clock, Hash, Dumbbell } from 'lucide-react';
+import { Play, LogOut, Trophy, Zap, Clock, Hash, Dumbbell, Pencil } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -153,7 +153,14 @@ export function GymnasiumHomePage() {
                 }`}
               >
                 <span className="text-xl">✨</span>
-                <span>Custom Theme</span>
+                {customThemeInput && config.theme !== 'custom' ? (
+                  <span className="flex items-center gap-2">
+                    Custom: {customThemeInput}
+                    <Pencil className="w-3.5 h-3.5 opacity-60" />
+                  </span>
+                ) : (
+                  <span>Custom Theme</span>
+                )}
               </button>
 
               {config.theme === 'custom' && (
@@ -162,13 +169,16 @@ export function GymnasiumHomePage() {
                   animate={{ opacity: 1, height: 'auto' }}
                   className="mt-3"
                 >
-                  <input
-                    type="text"
-                    value={customThemeInput}
-                    onChange={(e) => setCustomThemeInput(e.target.value)}
-                    placeholder="Enter your theme (e.g., 'Space adventures', 'Dinosaurs')"
-                    className="w-full p-3 rounded-xl bg-white/10 text-white placeholder:text-white/50 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
-                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={customThemeInput}
+                      onChange={(e) => setCustomThemeInput(e.target.value)}
+                      placeholder="Enter your theme (e.g., 'Space adventures', 'Dinosaurs')"
+                      className="flex-1 p-3 rounded-xl bg-white/10 text-white placeholder:text-white/50 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
+                    />
+                    <Pencil className="w-5 h-5 text-white/50 shrink-0" />
+                  </div>
                 </motion.div>
               )}
             </div>
