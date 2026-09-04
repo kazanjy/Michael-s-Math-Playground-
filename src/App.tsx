@@ -5,6 +5,7 @@ import { LoginPage } from './pages/Login';
 import { GymnasiumHomePage } from './pages/GymnasiumHome';
 import { GymnasiumPracticePage } from './pages/GymnasiumPractice';
 import { GymnasiumSummaryPage } from './pages/GymnasiumSummary';
+import { HistoryPage } from './pages/History';
 
 // Force logout by clearing all storage and redirecting
 function forceLogout() {
@@ -101,6 +102,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <GymnasiumSummaryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <HistoryPage />
             </ProtectedRoute>
           }
         />

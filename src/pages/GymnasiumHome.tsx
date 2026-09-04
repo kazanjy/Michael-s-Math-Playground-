@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, LogOut, Trophy, Zap, Clock, Hash, Dumbbell, Pencil } from 'lucide-react';
+import { Play, LogOut, Trophy, Zap, Clock, Hash, Dumbbell, Pencil, History } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -315,17 +315,26 @@ export function GymnasiumHomePage() {
             </div>
           </div>
 
-          {/* Start button */}
-          <Button
-            size="xl"
-            className="w-full"
-            onClick={startSession}
-            style={{
-              background: `linear-gradient(to right, ${themeColors.primary}, ${themeColors.secondary})`,
-            }}
-          >
-            <Play className="w-6 h-6 mr-2" /> Start Workout
-          </Button>
+          {/* Start and History buttons */}
+          <div className="flex gap-3">
+            <Button
+              size="xl"
+              className="flex-1"
+              onClick={startSession}
+              style={{
+                background: `linear-gradient(to right, ${themeColors.primary}, ${themeColors.secondary})`,
+              }}
+            >
+              <Play className="w-6 h-6 mr-2" /> Start Workout
+            </Button>
+            <Button
+              size="xl"
+              variant="secondary"
+              onClick={() => navigate('/history')}
+            >
+              <History className="w-6 h-6" />
+            </Button>
+          </div>
         </motion.div>
       </main>
     </div>

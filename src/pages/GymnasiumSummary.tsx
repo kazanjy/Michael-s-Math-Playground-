@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Home, RotateCcw, Trophy, Zap, Target, Clock, Check, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Home, RotateCcw, Trophy, Zap, Target, Clock, Check, X, ChevronDown, ChevronUp, History } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
+import { saveSession } from '../lib/historyService';
 import {
   type GymnasiumSessionConfig,
   type GymnasiumAnswer,
@@ -19,13 +20,15 @@ interface SessionResult {
   correctCount: number;
   incorrectCount: number;
   bestStreak: number;
+  scratchpadImages?: Record<string, string>;
 }
 
 export function GymnasiumSummaryPage() {
   const navigate = useNavigate();
-  useAuth(); // Keep auth context active
+  const { currentChild } = useAuth();
   const [result, setResult] = useState<SessionResult | null>(null);
   const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(new Set());
+  const savedRef = useRef(false);
 
   // Load result from sessionStorage
   useEffect(() => {
@@ -40,6 +43,27 @@ export function GymnasiumSummaryPage() {
       navigate('/');
     }
   }, [navigate]);
+
+  // Save session to history (once)
+  useEffect(() => {
+    if (!result || savedRef.current) return;
+    savedRef.current = true;
+
+    const childId = currentChild?.id || 'demo-child-1';
+    const imageMap = new Map<string, string>(
+      Object.entries(result.scratchpadImages || {})
+    );
+
+    saveSession(
+      childId,
+      result.config,
+      result.answers,
+      result.totalXp,
+      result.elapsedTimeMs,
+      result.bestStreak,
+      imageMap,
+    ).catch(err => console.error('Failed to save session history:', err));
+  }, [result, currentChild]);
 
   if (!result) {
     return (
@@ -300,17 +324,21 @@ export function GymnasiumSummaryPage() {
           <Button
             variant="secondary"
             size="lg"
-            className="flex-1"
             onClick={() => navigate('/')}
           >
-            <Home className="w-5 h-5 mr-2" />
-            Home
+            <Home className="w-5 h-5" />
+          </Button>
+          <Button
+            variant="secondary"
+            size="lg"
+            onClick={() => navigate('/history')}
+          >
+            <History className="w-5 h-5" />
           </Button>
           <Button
             size="lg"
             className="flex-1"
             onClick={() => {
-              // Restart with same config
               navigate('/practice');
             }}
             style={{

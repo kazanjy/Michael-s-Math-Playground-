@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Clock, Target, Zap, RotateCcw, Loader2 } from 'lucide-react';
 import { GymnasiumNumberPad } from '../components/calculator/GymnasiumNumberPad';
-import { Scratchpad } from '../components/scratchpad/Scratchpad';
+import { Scratchpad, type ScratchpadHandle } from '../components/scratchpad/Scratchpad';
 import { useAuth } from '../contexts/AuthContext';
 import { generateQuestion, checkAnswer, generateFallbackQuestion } from '../lib/questionService';
 import {
@@ -71,9 +71,9 @@ export function GymnasiumPracticePage() {
   const [questionStartTime, setQuestionStartTime] = useState(Date.now());
   const startTimeRef = useRef(Date.now());
 
-  // Scratchpad ref for capturing images (future use for saving work)
-  const _scratchpadRef = useRef<{ getImage: () => string | null }>({ getImage: () => null });
-  void _scratchpadRef; // Suppress unused warning - will be used for saving scratchpad images
+  // Scratchpad ref for capturing work images
+  const scratchpadRef = useRef<ScratchpadHandle>(null);
+  const [scratchpadImages] = useState(() => new Map<string, string>());
 
   // Keypad config based on grade
   const keypadConfig = getKeypadConfigForGrade(config.gradeLevel);
@@ -120,7 +120,6 @@ export function GymnasiumPracticePage() {
   // End session
   useEffect(() => {
     if (isSessionComplete() && !isProcessing && !isLoadingQuestion) {
-      // Save session data
       const sessionData = {
         config,
         answers,
@@ -129,17 +128,17 @@ export function GymnasiumPracticePage() {
         correctCount: answers.filter(a => a.isCorrect).length,
         incorrectCount: answers.filter(a => !a.isCorrect).length,
         bestStreak,
+        scratchpadImages: Object.fromEntries(scratchpadImages),
       };
       sessionStorage.setItem('gymnasiumResult', JSON.stringify(sessionData));
 
-      // Update child XP
       if (currentChild && totalXp > 0) {
         updateChildXp(currentChild.id, totalXp);
       }
 
       navigate('/summary');
     }
-  }, [isSessionComplete, isProcessing, isLoadingQuestion, answers, totalXp, elapsedTime, config, currentChild, updateChildXp, navigate, bestStreak]);
+  }, [isSessionComplete, isProcessing, isLoadingQuestion, answers, totalXp, elapsedTime, config, currentChild, updateChildXp, navigate, bestStreak, scratchpadImages]);
 
   // Load the next question
   const loadNextQuestion = useCallback(async (previousQuestion?: GymnasiumQuestion, isRetry?: boolean, retryGenre?: string) => {
@@ -224,6 +223,12 @@ export function GymnasiumPracticePage() {
   // Handle answer submission
   const handleSubmit = () => {
     if (!userAnswer || isProcessing || !currentQuestion) return;
+
+    // Capture scratchpad work before processing
+    const scratchpadImage = scratchpadRef.current?.getImage();
+    if (scratchpadImage) {
+      scratchpadImages.set(currentQuestion.id, scratchpadImage);
+    }
 
     const timeSpent = Date.now() - questionStartTime;
     const isCorrect = checkAnswer(userAnswer, currentQuestion.correctAnswer);
@@ -363,6 +368,7 @@ export function GymnasiumPracticePage() {
         correctCount: answers.filter(a => a.isCorrect).length,
         incorrectCount: answers.filter(a => !a.isCorrect).length,
         bestStreak,
+        scratchpadImages: Object.fromEntries(scratchpadImages),
       };
       sessionStorage.setItem('gymnasiumResult', JSON.stringify(sessionData));
 
@@ -496,6 +502,7 @@ export function GymnasiumPracticePage() {
           {/* Scratchpad */}
           <div className="flex-1 min-h-[200px] lg:min-h-0">
             <Scratchpad
+              ref={scratchpadRef}
               className="h-full"
               disabled={isProcessing}
             />

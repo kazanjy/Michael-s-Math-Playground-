@@ -1,5 +1,9 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { Eraser, Trash2, Undo } from 'lucide-react';
+
+export interface ScratchpadHandle {
+  getImage: () => string | null;
+}
 
 interface ScratchpadProps {
   onClear?: () => void;
@@ -18,7 +22,7 @@ interface Stroke {
   lineWidth: number;
 }
 
-export function Scratchpad({ onClear, className = '', disabled = false }: ScratchpadProps) {
+export const Scratchpad = forwardRef<ScratchpadHandle, ScratchpadProps>(function Scratchpad({ onClear, className = '', disabled = false }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -209,19 +213,13 @@ export function Scratchpad({ onClear, className = '', disabled = false }: Scratc
   };
 
   // Get canvas as data URL for saving
-  const getCanvasImage = (): string | null => {
+  const getCanvasImage = useCallback((): string | null => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
     return canvas.toDataURL('image/png');
-  };
-
-  // Expose getCanvasImage to parent
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      (canvas as HTMLCanvasElement & { getCanvasImage: () => string | null }).getCanvasImage = getCanvasImage;
-    }
   }, []);
+
+  useImperativeHandle(ref, () => ({ getImage: getCanvasImage }), [getCanvasImage]);
 
   return (
     <div className={`flex flex-col ${className}`}>
@@ -289,17 +287,4 @@ export function Scratchpad({ onClear, className = '', disabled = false }: Scratc
       </div>
     </div>
   );
-}
-
-// Hook to get canvas image
-export function useScratchpadRef() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  const getImage = useCallback((): string | null => {
-    if (!canvasRef.current) return null;
-    const canvas = canvasRef.current as HTMLCanvasElement & { getCanvasImage?: () => string | null };
-    return canvas.getCanvasImage?.() || canvas.toDataURL('image/png');
-  }, []);
-
-  return { canvasRef, getImage };
-}
+});
