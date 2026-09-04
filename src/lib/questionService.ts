@@ -5,6 +5,7 @@ interface GenerateQuestionParams {
   customTheme?: string;
   gradeLevel: GradeLevel;
   previousQuestion?: GymnasiumQuestion;
+  recentQuestions?: GymnasiumQuestion[];
   isRetry?: boolean;
   retryGenre?: string;
 }
@@ -25,9 +26,13 @@ function generateId(): string {
  * Generate a math word problem using the OpenAI API
  */
 export async function generateQuestion(params: GenerateQuestionParams): Promise<GymnasiumQuestion> {
-  const { theme, customTheme, gradeLevel, previousQuestion, isRetry, retryGenre } = params;
+  const { theme, customTheme, gradeLevel, previousQuestion, recentQuestions, isRetry, retryGenre } = params;
 
   try {
+    const recentTexts = (recentQuestions || [])
+      .slice(-5)
+      .map(q => q.questionText);
+
     const response = await fetch('/api/generate-question', {
       method: 'POST',
       headers: {
@@ -38,6 +43,7 @@ export async function generateQuestion(params: GenerateQuestionParams): Promise<
         customTheme: theme === 'custom' ? customTheme : undefined,
         gradeLevel,
         previousQuestion: previousQuestion?.questionText,
+        recentQuestions: recentTexts,
         isRetry,
         retryGenre,
       }),

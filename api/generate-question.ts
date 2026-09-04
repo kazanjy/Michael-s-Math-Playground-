@@ -6,6 +6,7 @@ interface GenerateQuestionRequest {
   customTheme?: string;
   gradeLevel: string;
   previousQuestion?: string;
+  recentQuestions?: string[];
   isRetry?: boolean;
   retryGenre?: string;
 }
@@ -34,6 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       customTheme,
       gradeLevel,
       previousQuestion,
+      recentQuestions,
       isRetry,
       retryGenre,
     } = req.body as GenerateQuestionRequest;
@@ -47,6 +49,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       themeDescription,
       gradeLevel,
       previousQuestion,
+      recentQuestions,
       isRetry,
       retryGenre,
     });
@@ -70,7 +73,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             content: prompt,
           },
         ],
-        temperature: 0.7,
+        temperature: 0.9,
         max_tokens: 500,
       }),
     });
@@ -128,12 +131,13 @@ interface BuildPromptParams {
   themeDescription: string;
   gradeLevel: string;
   previousQuestion?: string;
+  recentQuestions?: string[];
   isRetry?: boolean;
   retryGenre?: string;
 }
 
 function buildPrompt(params: BuildPromptParams): string {
-  const { themeDescription, gradeLevel, previousQuestion, isRetry, retryGenre } = params;
+  const { themeDescription, gradeLevel, previousQuestion, recentQuestions, isRetry, retryGenre } = params;
 
   const gradeGuidance = getGradeGuidance(gradeLevel);
 
@@ -146,21 +150,30 @@ ${gradeGuidance}
 
 `;
 
+  if (recentQuestions && recentQuestions.length > 0) {
+    prompt += `
+IMPORTANT - DO NOT REUSE NUMBERS OR SCENARIOS. Here are the recent questions from this session:
+${recentQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
+
+You MUST use completely different numbers, quantities, and scenarios than all of the above questions. Vary the numbers significantly - do not just change them by 1 or 2.
+`;
+  }
+
   if (isRetry && retryGenre) {
     prompt += `
-IMPORTANT: The student struggled with this concept: "${retryGenre}"
-Create a similar problem testing the SAME mathematical skill, but with different numbers and scenario.
+The student struggled with this concept: "${retryGenre}"
+Create a similar problem testing the SAME mathematical skill, but with ENTIRELY DIFFERENT numbers and a different scenario than any previous question.
 `;
   } else if (previousQuestion) {
     prompt += `
 The previous question was: "${previousQuestion}"
-Create a DIFFERENT type of math problem - use a different operation or concept than the previous question.
+Create a DIFFERENT type of math problem - use a different operation or concept, AND completely different numbers.
 `;
   }
 
   prompt += `
 Respond with a JSON object containing:
-- "question": The word problem text (make it engaging and themed)
+- "question": The word problem text (make it engaging and themed, with fresh numbers not used in recent questions)
 - "answer": The numeric answer (as a string - can be whole number, decimal like "3.5", or fraction like "3/4")
 - "explanation": Step-by-step solution explanation (clear and educational)
 - "genre": The math concept (e.g., "addition", "subtraction", "multiplication", "division", "fractions", "decimals", "percentages", "algebra", "geometry")

@@ -58,6 +58,9 @@ export function GymnasiumPracticePage() {
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Track recent questions to avoid number reuse
+  const [recentQuestions, setRecentQuestions] = useState<GymnasiumQuestion[]>([]);
+
   // Spaced repetition
   const [retryQueue, setRetryQueue] = useState<RetryQueueItem[]>([]);
   const [isRetryQuestion, setIsRetryQuestion] = useState(false);
@@ -149,11 +152,13 @@ export function GymnasiumPracticePage() {
         customTheme: config.customTheme,
         gradeLevel: config.gradeLevel,
         previousQuestion: previousQuestion,
+        recentQuestions,
         isRetry,
         retryGenre,
       });
 
       setCurrentQuestion(question);
+      setRecentQuestions(prev => [...prev.slice(-4), question]);
       setQuestionStartTime(Date.now());
       setAttempts(0);
       setUserAnswer('');
@@ -165,6 +170,7 @@ export function GymnasiumPracticePage() {
       // Use fallback question
       const fallback = generateFallbackQuestion(config.gradeLevel, config.theme);
       setCurrentQuestion(fallback);
+      setRecentQuestions(prev => [...prev.slice(-4), fallback]);
       setQuestionStartTime(Date.now());
       setAttempts(0);
       setUserAnswer('');
