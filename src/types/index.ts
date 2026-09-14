@@ -157,7 +157,7 @@ export interface SessionConfig {
 
   // Speed Times Tables config (operations: multiply, divide)
   speedOperations: ('multiply' | 'divide')[];
-  primaryNumbers: number[];           // Tables to practice (1-12)
+  primaryNumbers: number[];           // Tables to practice (1-15)
   multiplierRanges: { min: number; max: number }[];
 
   // General Mental Math config (per-operation digit combos)

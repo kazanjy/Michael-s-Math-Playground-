@@ -351,8 +351,8 @@ export function HomePage() {
               {/* Tables to practice */}
               <div>
                 <h4 className="text-slate-300 text-sm font-medium mb-2">Tables</h4>
-                <div className="grid grid-cols-6 gap-2">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (
+                <div className="grid grid-cols-5 gap-2">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(num => (
                     <button
                       key={num}
                       onClick={() => togglePrimaryNumber(num)}
