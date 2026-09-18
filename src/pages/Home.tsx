@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Play, LogOut, Trophy, Zap, Clock, Hash, History } from 'lucide-react';
+import { FullscreenButton } from '../components/common/FullscreenButton';
+import { useFullscreen } from '../hooks/useFullscreen';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { createDefaultSessionConfig, DIGIT_COMBOS, computeOperations, DIFFICULTY_LABELS } from '../types';
@@ -100,6 +102,7 @@ function missionUsesMentalMath(config: SessionConfig): boolean {
 export function HomePage() {
   const navigate = useNavigate();
   const { currentChild, signOut } = useAuth();
+  const { enter: enterFullscreen } = useFullscreen();
   const [missionHistory, setMissionHistory] = useState<MissionHistory[]>([]);
 
   // Session configuration state - load from localStorage
@@ -122,11 +125,15 @@ export function HomePage() {
     };
     saveCustomConfig(finalConfig);
     sessionStorage.setItem('sessionConfig', JSON.stringify(finalConfig));
+    // Best-effort: starting a mission is a user gesture, which is the only
+    // moment a browser will grant fullscreen. Silently ignored where denied.
+    void enterFullscreen();
     navigate('/practice');
   };
 
   const startFromHistory = (mission: MissionHistory) => {
     sessionStorage.setItem('sessionConfig', JSON.stringify(mission.config));
+    void enterFullscreen();
     navigate('/practice');
   };
 
@@ -196,9 +203,12 @@ export function HomePage() {
               )}
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={signOut}>
-            <LogOut className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <FullscreenButton />
+            <Button variant="ghost" size="sm" onClick={signOut} aria-label="Sign out">
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Jet Name Banner */}

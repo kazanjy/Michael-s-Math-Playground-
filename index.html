@@ -3,8 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover lets the page paint under the status bar / home
+         indicator; locking the scale stops a stray pinch or double-tap on the
+         number pad from zooming the board. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#1e3a5f" />
+
+    <!-- Added to the home screen, the app launches with no browser chrome at
+         all - the only way to fully escape the sliding toolbars on iPad. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Math Dogfight" />
     <title>Michael's Math Dogfight</title>
     <meta name="description" content="Times Tables and Mental Math with Missiles - Ready for takeoff, pilot?" />
 

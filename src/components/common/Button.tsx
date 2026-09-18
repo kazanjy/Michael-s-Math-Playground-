@@ -11,6 +11,8 @@ interface ButtonProps {
   type?: 'button' | 'submit' | 'reset';
   title?: string;
   'data-tip'?: string;
+  // Icon-only buttons have no text for a screen reader to announce.
+  'aria-label'?: string;
 }
 
 const variants = {
@@ -38,6 +40,7 @@ export function Button({
   type = 'button',
   title,
   'data-tip': dataTip,
+  'aria-label': ariaLabel,
 }: ButtonProps) {
   return (
     <motion.button
@@ -55,6 +58,7 @@ export function Button({
       type={type}
       title={title}
       data-tip={dataTip}
+      aria-label={ariaLabel}
     >
       {children}
     </motion.button>

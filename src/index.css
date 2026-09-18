@@ -12,14 +12,31 @@
 }
 
 /* Base styles */
+html,
+body {
+  /* Kill the rubber-band bounce. On a tablet that bounce is what drags the
+     page around under the browser toolbars as they show and hide. */
+  overscroll-behavior: none;
+  background-color: #0f172a;
+}
+
 body {
   margin: 0;
-  min-height: 100vh;
+  /* dvh tracks the viewport as the address bar slides away, so the layout
+     stops jumping the way it does with vh. */
+  min-height: 100dvh;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
 #root {
-  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Answering is a rapid tap-tap-tap on the number pad; without this the browser
+   waits to see whether each tap was a double-tap zoom. */
+button,
+[role="button"] {
+  touch-action: manipulation;
 }
 
 /* Buttons should use pointer cursor (standards-compliant interactive element styling) */
