@@ -41,7 +41,9 @@ export function SummaryPage() {
       // Save mission to history (only once)
       if (!savedToHistory.current && parsedResult.answers.length > 0) {
         savedToHistory.current = true;
-        const correctAnswers = parsedResult.answers.filter(a => a.isCorrect).length;
+        // Wrong answers are retried until correct, so every stored answer has
+        // isCorrect true. attempts === 1 is what "got it right first time" means.
+        const correctAnswers = parsedResult.answers.filter(a => a.attempts === 1).length;
         const totalTime = parsedResult.answers.reduce((sum, a) => sum + a.responseTimeMs, 0);
         saveMissionToHistory({
           config: parsedResult.config,
@@ -80,8 +82,11 @@ export function SummaryPage() {
 
   // Calculate stats
   const totalQuestions = answers.length;
-  const correctAnswers = answers.filter(a => a.isCorrect).length;
-  const accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+  // Every recorded answer is eventually correct - a wrong answer sends the
+  // question back round rather than being stored as a miss. So attempts is the
+  // only thing that distinguishes "knew it" from "got there in the end".
+  const firstTryCorrect = answers.filter(a => a.attempts === 1).length;
+  const accuracy = totalQuestions > 0 ? Math.round((firstTryCorrect / totalQuestions) * 100) : 0;
   const avgResponseTime = totalQuestions > 0
     ? Math.round(answers.reduce((sum, a) => sum + a.responseTimeMs, 0) / totalQuestions)
     : 0;
@@ -89,11 +94,11 @@ export function SummaryPage() {
     ? Math.min(...answers.map(a => a.responseTimeMs))
     : 0;
 
-  // Find most missed fact
-  const wrongAnswers = answers.filter(a => !a.isCorrect);
-  const mostMissed = wrongAnswers.length > 0
-    ? wrongAnswers[0].question.displayString
-    : null;
+  // Facts that took more than one go, hardest first.
+  const missedFirstTry = answers
+    .filter(a => a.attempts > 1)
+    .sort((a, b) => b.attempts - a.attempts);
+  const topMissed = missedFirstTry.slice(0, 5);
 
   // XP progress
   const xpProgress = currentChild
@@ -173,8 +178,8 @@ export function SummaryPage() {
           {/* Questions */}
           <StatCard
             icon={<Target className="w-5 h-5" />}
-            label="Questions"
-            value={`${correctAnswers}/${totalQuestions}`}
+            label="First Try"
+            value={`${firstTryCorrect}/${totalQuestions}`}
             color="emerald"
           />
 
@@ -396,15 +401,34 @@ export function SummaryPage() {
         )}
 
         {/* Problem areas */}
-        {mostMissed && (
+        {missedFirstTry.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.75 }}
             className="bg-red-500/10 rounded-2xl p-4 mb-6 border border-red-500/30"
           >
-            <div className="text-red-400 text-sm font-medium mb-1">Practice More:</div>
-            <div className="text-white font-bold">{mostMissed}</div>
+            <div className="text-red-400 text-sm font-medium mb-2">
+              Missed on first try: {missedFirstTry.length}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {topMissed.map(a => (
+                <span
+                  key={a.questionId}
+                  className="bg-red-500/20 text-white font-bold px-2 py-1 rounded-lg text-sm"
+                >
+                  {a.question.displayString}
+                  {a.attempts > 2 && (
+                    <span className="text-red-300 font-normal"> ×{a.attempts}</span>
+                  )}
+                </span>
+              ))}
+              {missedFirstTry.length > topMissed.length && (
+                <span className="text-red-300 text-sm self-center">
+                  +{missedFirstTry.length - topMissed.length} more
+                </span>
+              )}
+            </div>
           </motion.div>
         )}
       </div>
