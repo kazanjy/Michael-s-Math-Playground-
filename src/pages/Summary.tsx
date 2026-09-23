@@ -9,7 +9,20 @@ import { useAuth } from '../contexts/AuthContext';
 import { getXPProgressToNextRank, getRankForXP } from '../lib/xpCalculator';
 import { getResourceIcon } from '../lib/jetResources';
 import { saveMissionToHistory } from './Home';
-import type { Answer, SessionConfig, Rank, SessionResourceStats, JetResources } from '../types';
+import { getQuestionThresholds } from '../types';
+import type { Answer, SessionConfig, Difficulty, Rank, SessionResourceStats, JetResources } from '../types';
+
+// "Fast" is the same bar the session itself rewards with a speed bonus: at or
+// under the question's mastered threshold, scaled by the chosen difficulty.
+function isFastAnswer(answer: Answer, difficulty: Difficulty): boolean {
+  return answer.responseTimeMs <= getQuestionThresholds(answer.question, difficulty).mastered;
+}
+
+// A clean first try: right on the first attempt AND fast. Getting there
+// eventually, or slowly, does not count.
+function isCleanFirstTry(answer: Answer, difficulty: Difficulty): boolean {
+  return answer.attempts === 1 && isFastAnswer(answer, difficulty);
+}
 
 interface SessionResult {
   answers: Answer[];
@@ -42,8 +55,11 @@ export function SummaryPage() {
       if (!savedToHistory.current && parsedResult.answers.length > 0) {
         savedToHistory.current = true;
         // Wrong answers are retried until correct, so every stored answer has
-        // isCorrect true. attempts === 1 is what "got it right first time" means.
-        const correctAnswers = parsedResult.answers.filter(a => a.attempts === 1).length;
+        // isCorrect true. A success here means first attempt and fast.
+        const difficulty = parsedResult.config.difficulty;
+        const correctAnswers = parsedResult.answers.filter(
+          a => isCleanFirstTry(a, difficulty)
+        ).length;
         const totalTime = parsedResult.answers.reduce((sum, a) => sum + a.responseTimeMs, 0);
         saveMissionToHistory({
           config: parsedResult.config,
@@ -83,10 +99,13 @@ export function SummaryPage() {
   // Calculate stats
   const totalQuestions = answers.length;
   // Every recorded answer is eventually correct - a wrong answer sends the
-  // question back round rather than being stored as a miss. So attempts is the
-  // only thing that distinguishes "knew it" from "got there in the end".
-  const firstTryCorrect = answers.filter(a => a.attempts === 1).length;
+  // question back round rather than being stored as a miss. So attempts and
+  // response time are what separate "knew it cold" from "got there in the end".
+  const difficulty = result.config.difficulty;
+  const firstTryCorrect = answers.filter(a => isCleanFirstTry(a, difficulty)).length;
+  const fastCount = answers.filter(a => isFastAnswer(a, difficulty)).length;
   const accuracy = totalQuestions > 0 ? Math.round((firstTryCorrect / totalQuestions) * 100) : 0;
+  const fastRate = totalQuestions > 0 ? Math.round((fastCount / totalQuestions) * 100) : 0;
   const avgResponseTime = totalQuestions > 0
     ? Math.round(answers.reduce((sum, a) => sum + a.responseTimeMs, 0) / totalQuestions)
     : 0;
@@ -94,11 +113,12 @@ export function SummaryPage() {
     ? Math.min(...answers.map(a => a.responseTimeMs))
     : 0;
 
-  // Facts that took more than one go, hardest first.
-  const missedFirstTry = answers
-    .filter(a => a.attempts > 1)
-    .sort((a, b) => b.attempts - a.attempts);
-  const topMissed = missedFirstTry.slice(0, 5);
+  // Anything that was not a clean first try: missed, slow, or both. Missed
+  // facts lead (most attempts first), then the slowest of the rest.
+  const needsWork = answers
+    .filter(a => !isCleanFirstTry(a, difficulty))
+    .sort((a, b) => (b.attempts - a.attempts) || (b.responseTimeMs - a.responseTimeMs));
+  const topNeedsWork = needsWork.slice(0, 8);
 
   // XP progress
   const xpProgress = currentChild
@@ -175,19 +195,19 @@ export function SummaryPage() {
           transition={{ delay: 0.3 }}
           className="grid grid-cols-2 gap-3 mb-6"
         >
-          {/* Questions */}
+          {/* First try: right first time AND fast */}
           <StatCard
             icon={<Target className="w-5 h-5" />}
-            label="First Try"
+            label={`First Try · ${accuracy}%`}
             value={`${firstTryCorrect}/${totalQuestions}`}
             color="emerald"
           />
 
-          {/* Accuracy */}
+          {/* Fast: under the speed-bonus bar, however many tries it took */}
           <StatCard
             icon={<TrendingUp className="w-5 h-5" />}
-            label="Accuracy"
-            value={`${accuracy}%`}
+            label={`Fast · ${fastRate}%`}
+            value={`${fastCount}/${totalQuestions}`}
             color="blue"
           />
 
@@ -207,6 +227,44 @@ export function SummaryPage() {
             color="amber"
           />
         </motion.div>
+
+        {/* Needs practice - missed or not yet fast. Sits high on the page so it
+            is read before the XP and combat sections. */}
+        {needsWork.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="bg-red-500/10 rounded-2xl p-4 mb-6 border border-red-500/30"
+          >
+            <div className="text-red-400 text-sm font-medium mb-2">
+              Missed or slow: {needsWork.length} of {totalQuestions}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {topNeedsWork.map(a => {
+                const missed = a.attempts > 1;
+                return (
+                  <span
+                    key={a.questionId}
+                    className={`font-bold px-2 py-1 rounded-lg text-sm text-white ${
+                      missed ? 'bg-red-500/25' : 'bg-amber-500/25'
+                    }`}
+                  >
+                    {a.question.displayString}
+                    <span className={`font-normal ${missed ? 'text-red-300' : 'text-amber-300'}`}>
+                      {missed ? ` ×${a.attempts}` : ` ${formatMs(a.responseTimeMs)}`}
+                    </span>
+                  </span>
+                );
+              })}
+              {needsWork.length > topNeedsWork.length && (
+                <span className="text-red-300 text-sm self-center">
+                  +{needsWork.length - topNeedsWork.length} more
+                </span>
+              )}
+            </div>
+          </motion.div>
+        )}
 
         {/* XP earned */}
         <motion.div
@@ -400,37 +458,6 @@ export function SummaryPage() {
           </motion.div>
         )}
 
-        {/* Problem areas */}
-        {missedFirstTry.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.75 }}
-            className="bg-red-500/10 rounded-2xl p-4 mb-6 border border-red-500/30"
-          >
-            <div className="text-red-400 text-sm font-medium mb-2">
-              Missed on first try: {missedFirstTry.length}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {topMissed.map(a => (
-                <span
-                  key={a.questionId}
-                  className="bg-red-500/20 text-white font-bold px-2 py-1 rounded-lg text-sm"
-                >
-                  {a.question.displayString}
-                  {a.attempts > 2 && (
-                    <span className="text-red-300 font-normal"> ×{a.attempts}</span>
-                  )}
-                </span>
-              ))}
-              {missedFirstTry.length > topMissed.length && (
-                <span className="text-red-300 text-sm self-center">
-                  +{missedFirstTry.length - topMissed.length} more
-                </span>
-              )}
-            </div>
-          </motion.div>
-        )}
       </div>
 
       {/* Level up celebration */}
