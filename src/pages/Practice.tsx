@@ -96,6 +96,27 @@ export function PracticePage() {
   const [questionStartTime, setQuestionStartTime] = useState(Date.now());
   const startTimeRef = useRef(Date.now());
 
+  // Every later question starts its clock in the same batch that swaps the
+  // question in, so it is timed from the moment it appears. The first question
+  // is different: this component builds it during its own first render, so
+  // without this the child is charged for mounting the page - the animated
+  // background, the number pad, and any fullscreen transition still in flight -
+  // before the question is even on screen. Measured at ~450ms on a warm
+  // desktop, which is enough to push an otherwise fast first answer over the
+  // speed threshold. Restart the clock once the first frame has actually
+  // painted.
+  useEffect(() => {
+    let inner = 0;
+    // Two frames: the first fires before paint, the second after it.
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setQuestionStartTime(Date.now()));
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      if (inner) cancelAnimationFrame(inner);
+    };
+  }, []);
+
   // Timer for timed mode
   useEffect(() => {
     const interval = setInterval(() => {
