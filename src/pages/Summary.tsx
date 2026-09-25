@@ -12,16 +12,24 @@ import { saveMissionToHistory } from './Home';
 import { getQuestionThresholds } from '../types';
 import type { Answer, SessionConfig, Difficulty, Rank, SessionResourceStats, JetResources } from '../types';
 
-// "Fast" is the same bar the session itself rewards with a speed bonus: at or
-// under the question's mastered threshold, scaled by the chosen difficulty.
+// Each question has two bars. "mastered" is the one the session rewards with a
+// speed bonus; "slow" is the one it penalises - zero XP and a broken streak.
+// Between them sits a perfectly good answer that was simply not lightning.
+
+// Fast: at or under the speed-bonus bar.
 function isFastAnswer(answer: Answer, difficulty: Difficulty): boolean {
   return answer.responseTimeMs <= getQuestionThresholds(answer.question, difficulty).mastered;
 }
 
-// A clean first try: right on the first attempt AND fast. Getting there
-// eventually, or slowly, does not count.
+// Slow: past the bar the session itself treats as a failure.
+function isSlowAnswer(answer: Answer, difficulty: Difficulty): boolean {
+  return answer.responseTimeMs > getQuestionThresholds(answer.question, difficulty).slow;
+}
+
+// A clean first try: right on the first attempt and not slow. An answer in the
+// middle band - not fast, but not a struggle either - still counts.
 function isCleanFirstTry(answer: Answer, difficulty: Difficulty): boolean {
-  return answer.attempts === 1 && isFastAnswer(answer, difficulty);
+  return answer.attempts === 1 && !isSlowAnswer(answer, difficulty);
 }
 
 interface SessionResult {
@@ -113,8 +121,9 @@ export function SummaryPage() {
     ? Math.min(...answers.map(a => a.responseTimeMs))
     : 0;
 
-  // Anything that was not a clean first try: missed, slow, or both. Missed
-  // facts lead (most attempts first), then the slowest of the rest.
+  // Anything that was not a clean first try: missed, slow, or both. Answers in
+  // the middle band count as successes and do not appear here. Missed facts
+  // lead (most attempts first), then the slowest of the rest.
   const needsWork = answers
     .filter(a => !isCleanFirstTry(a, difficulty))
     .sort((a, b) => (b.attempts - a.attempts) || (b.responseTimeMs - a.responseTimeMs));
@@ -195,14 +204,13 @@ export function SummaryPage() {
           transition={{ delay: 0.3 }}
           className="grid grid-cols-2 gap-3 mb-6"
         >
-          {/* Right first time AND fast - the label has to name both, or a clean
-              20-correct session reads as a correctness failure. */}
+          {/* Right first time and not slow. The middle band counts. */}
           <StatCard
             icon={<Target className="w-5 h-5" />}
-            label={`Fast First Try · ${accuracy}%`}
+            label={`First Try Correct · ${accuracy}%`}
             value={`${firstTryCorrect}/${totalQuestions}`}
             color="emerald"
-            tip="Right on the first attempt AND inside the fast time for that question"
+            tip="Right on the first attempt, without going over the slow time"
           />
 
           {/* Fast: under the speed bar, however many tries it took */}
