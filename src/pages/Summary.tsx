@@ -198,7 +198,7 @@ export function SummaryPage() {
           {/* First try: right first time AND fast */}
           <StatCard
             icon={<Target className="w-5 h-5" />}
-            label={`First Try · ${accuracy}%`}
+            label={`First Try Correct · ${accuracy}%`}
             value={`${firstTryCorrect}/${totalQuestions}`}
             color="emerald"
           />
