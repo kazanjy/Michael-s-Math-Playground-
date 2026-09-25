@@ -195,20 +195,23 @@ export function SummaryPage() {
           transition={{ delay: 0.3 }}
           className="grid grid-cols-2 gap-3 mb-6"
         >
-          {/* First try: right first time AND fast */}
+          {/* Right first time AND fast - the label has to name both, or a clean
+              20-correct session reads as a correctness failure. */}
           <StatCard
             icon={<Target className="w-5 h-5" />}
-            label={`First Try Correct · ${accuracy}%`}
+            label={`Fast First Try · ${accuracy}%`}
             value={`${firstTryCorrect}/${totalQuestions}`}
             color="emerald"
+            tip="Right on the first attempt AND inside the fast time for that question"
           />
 
-          {/* Fast: under the speed-bonus bar, however many tries it took */}
+          {/* Fast: under the speed bar, however many tries it took */}
           <StatCard
             icon={<TrendingUp className="w-5 h-5" />}
             label={`Fast · ${fastRate}%`}
             value={`${fastCount}/${totalQuestions}`}
             color="blue"
+            tip="Answered inside the fast time, however many attempts it took"
           />
 
           {/* Time */}
@@ -478,11 +481,13 @@ function StatCard({
   label,
   value,
   color,
+  tip,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   color: 'emerald' | 'blue' | 'purple' | 'amber';
+  tip?: string;
 }) {
   const colors = {
     emerald: 'from-emerald-500/20 to-emerald-600/20 border-emerald-500/30 text-emerald-400',
@@ -492,7 +497,7 @@ function StatCard({
   };
 
   return (
-    <div className={`bg-gradient-to-br ${colors[color]} rounded-xl p-4 border`}>
+    <div className={`bg-gradient-to-br ${colors[color]} rounded-xl p-4 border`} data-tip={tip}>
       <div className={`flex items-center gap-2 mb-1 ${colors[color].split(' ').pop()}`}>
         {icon}
         <span className="text-sm font-medium">{label}</span>
