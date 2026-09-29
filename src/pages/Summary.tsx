@@ -8,7 +8,7 @@ import { ResourceDisplay } from '../components/combat/ResourceDisplay';
 import { useAuth } from '../contexts/AuthContext';
 import { getXPProgressToNextRank, getRankForXP } from '../lib/xpCalculator';
 import { getResourceIcon } from '../lib/jetResources';
-import { saveMissionToHistory } from './Home';
+import { saveMissionToHistory, saveCustomConfig } from '../lib/missionStorage';
 import { getQuestionThresholds } from '../types';
 import type { Answer, SessionConfig, Difficulty, Rank, SessionResourceStats, JetResources } from '../types';
 
@@ -180,7 +180,11 @@ export function SummaryPage() {
             size="lg"
             className="flex-1"
             onClick={() => {
-              // Restart with same config
+              // Replay exactly what this session ran, rather than trusting
+              // whatever happens to be left in sessionStorage, and make it the
+              // current config so Home agrees with it too.
+              saveCustomConfig(result.config);
+              sessionStorage.setItem('sessionConfig', JSON.stringify(result.config));
               navigate('/practice');
             }}
           >

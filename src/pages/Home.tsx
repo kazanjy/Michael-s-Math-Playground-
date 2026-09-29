@@ -6,73 +6,11 @@ import { FullscreenButton } from '../components/common/FullscreenButton';
 import { useFullscreen } from '../hooks/useFullscreen';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
-import { createDefaultSessionConfig, DIGIT_COMBOS, computeOperations, DIFFICULTY_LABELS } from '../types';
+import { DIGIT_COMBOS, computeOperations, DIFFICULTY_LABELS } from '../types';
 import type { SessionConfig, Operation, DigitCombo, Difficulty } from '../types';
 import { getXPProgressToNextRank } from '../lib/xpCalculator';
-
-// Mission history type
-export interface MissionHistory {
-  id: string;
-  timestamp: number;
-  config: SessionConfig;
-  totalQuestions: number;
-  correctAnswers: number;
-  wrongAnswers: number;
-  avgTimePerQuestion: number; // ms
-  totalXp: number;
-}
-
-const CUSTOM_CONFIG_KEY = 'math_playground_custom_config';
-const MISSION_HISTORY_KEY = 'math_playground_mission_history';
-
-// Load last custom config from localStorage
-function loadCustomConfig(): SessionConfig {
-  const stored = localStorage.getItem(CUSTOM_CONFIG_KEY);
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored);
-      // Merge with defaults to ensure all new fields exist
-      return { ...createDefaultSessionConfig(), ...parsed };
-    } catch {
-      // Invalid JSON, return default
-    }
-  }
-  return createDefaultSessionConfig();
-}
-
-// Save custom config to localStorage
-function saveCustomConfig(config: SessionConfig): void {
-  localStorage.setItem(CUSTOM_CONFIG_KEY, JSON.stringify(config));
-}
-
-// Load mission history
-export function loadMissionHistory(): MissionHistory[] {
-  const stored = localStorage.getItem(MISSION_HISTORY_KEY);
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return [];
-    }
-  }
-  return [];
-}
-
-// Save mission to history
-export function saveMissionToHistory(mission: Omit<MissionHistory, 'id' | 'timestamp'>): void {
-  const history = loadMissionHistory();
-  const newMission: MissionHistory = {
-    ...mission,
-    id: `mission_${Date.now()}`,
-    timestamp: Date.now(),
-  };
-  // Add to beginning, keep only last 20
-  history.unshift(newMission);
-  if (history.length > 20) {
-    history.length = 20;
-  }
-  localStorage.setItem(MISSION_HISTORY_KEY, JSON.stringify(history));
-}
+import { loadCustomConfig, saveCustomConfig, loadMissionHistory } from '../lib/missionStorage';
+import type { MissionHistory } from '../lib/missionStorage';
 
 // Format time ago
 function formatTimeAgo(timestamp: number): string {
@@ -132,6 +70,12 @@ export function HomePage() {
   };
 
   const startFromHistory = (mission: MissionHistory) => {
+    // Persist it the same way startSession does. Without this the config only
+    // lives in sessionStorage for the one round: coming back here reloads the
+    // previous custom config from localStorage, so the next round silently
+    // reverts to the old settings.
+    saveCustomConfig(mission.config);
+    setConfig(mission.config);
     sessionStorage.setItem('sessionConfig', JSON.stringify(mission.config));
     void enterFullscreen();
     navigate('/practice');
