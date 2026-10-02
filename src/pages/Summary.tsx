@@ -43,26 +43,35 @@ function bucketFor(answer: Answer, difficulty: Difficulty): SpeedBucket {
   return 'gotIt';
 }
 
-// Status colours, validated for the dark surface (#0f172a): all four sit inside
-// the OKLCH lightness band, clear 3:1 contrast, and stay separable under
-// deuteranopia. Each is carried by an emoji and a label too, never colour alone.
+// This is read on a monochrome screen, so hue carries nothing: the buckets are
+// separated by lightness and by texture, with colour only a bonus for anyone on
+// a colour display. The four fills step down the L* scale (95, 81, 63, 49 - every
+// adjacent gap >= 13.9) and all clear 3:1 against the dark surface, so they stay
+// distinct once desaturated. Emoji, label and count carry the meaning regardless.
+const STRIPE_LIGHT = 'repeating-linear-gradient(45deg, rgba(0,0,0,0.26) 0 3px, transparent 3px 8px)';
+const STRIPE_DARK = 'repeating-linear-gradient(135deg, rgba(0,0,0,0.30) 0 3px, transparent 3px 8px)';
+
 const BUCKETS: {
   key: SpeedBucket;
   label: string;
   icon: string;
   fill: string;
+  stripe?: string;
   tip: string;
 }[] = [
-  { key: 'fast', label: 'Fast', icon: '\u26a1\ufe0f', fill: '#059669',
+  { key: 'fast', label: 'Fast', icon: '\u26a1\ufe0f', fill: '#d1fae5',
     tip: 'Straight out of your head - inside the fast time' },
-  { key: 'gotIt', label: 'Got it', icon: '\ud83d\udc4d', fill: '#0284c7',
+  { key: 'gotIt', label: 'Got it', icon: '\ud83d\udc4d', fill: '#7dd3fc', stripe: STRIPE_LIGHT,
     tip: 'Right first time. You worked it out - that counts' },
-  { key: 'slow', label: 'Slow', icon: '\ud83d\udc22', fill: '#d97706',
+  { key: 'slow', label: 'Slow', icon: '\ud83d\udc22', fill: '#d4860f', stripe: STRIPE_DARK,
     tip: 'Right first time, but it took a while' },
   { key: 'missed', label: 'Missed', icon: '\u274c\ufe0f', fill: '#e11d48',
     tip: 'Needed more than one try' },
 ];
 
+function bucketFill(b: { fill: string; stripe?: string }): React.CSSProperties {
+  return b.stripe ? { backgroundColor: b.fill, backgroundImage: b.stripe } : { backgroundColor: b.fill };
+}
 interface SessionResult {
   answers: Answer[];
   totalXp: number;
@@ -290,12 +299,12 @@ export function SummaryPage() {
           <h3 className="text-slate-300 text-sm font-medium mb-3">How You Answered</h3>
 
           {/* One bar, one segment per bucket, 2px gaps so the groups read apart */}
-          <div className="flex gap-[2px] h-3 mb-3" role="presentation">
+          <div className="flex gap-[2px] h-4 mb-3" role="presentation">
             {BUCKETS.filter(b => bucketCounts[b.key] > 0).map(b => (
               <div
                 key={b.key}
                 className="rounded-full"
-                style={{ flexGrow: bucketCounts[b.key], backgroundColor: b.fill }}
+                style={{ flexGrow: bucketCounts[b.key], ...bucketFill(b) }}
                 data-tip={`${b.label}: ${bucketCounts[b.key]} of ${totalQuestions}`}
               />
             ))}
@@ -311,8 +320,8 @@ export function SummaryPage() {
                 </div>
                 <div className="flex items-center justify-center gap-1 mt-0.5">
                   <span
-                    className="inline-block w-2 h-2 rounded-full shrink-0"
-                    style={{ backgroundColor: b.fill }}
+                    className="inline-block w-3 h-2 rounded-sm shrink-0"
+                    style={bucketFill(b)}
                   />
                   <span className="text-xs text-slate-300">{b.label}</span>
                 </div>
