@@ -32,6 +32,37 @@ function isCleanFirstTry(answer: Answer, difficulty: Difficulty): boolean {
   return answer.attempts === 1 && !isSlowAnswer(answer, difficulty);
 }
 
+// Every answer lands in exactly one bucket, so the four counts sum to the
+// session total. Needing a second go outranks whatever the clock said.
+type SpeedBucket = 'fast' | 'gotIt' | 'slow' | 'missed';
+
+function bucketFor(answer: Answer, difficulty: Difficulty): SpeedBucket {
+  if (answer.attempts > 1) return 'missed';
+  if (isSlowAnswer(answer, difficulty)) return 'slow';
+  if (isFastAnswer(answer, difficulty)) return 'fast';
+  return 'gotIt';
+}
+
+// Status colours, validated for the dark surface (#0f172a): all four sit inside
+// the OKLCH lightness band, clear 3:1 contrast, and stay separable under
+// deuteranopia. Each is carried by an emoji and a label too, never colour alone.
+const BUCKETS: {
+  key: SpeedBucket;
+  label: string;
+  icon: string;
+  fill: string;
+  tip: string;
+}[] = [
+  { key: 'fast', label: 'Fast', icon: '\u26a1\ufe0f', fill: '#059669',
+    tip: 'Straight out of your head - inside the fast time' },
+  { key: 'gotIt', label: 'Got it', icon: '\ud83d\udc4d', fill: '#0284c7',
+    tip: 'Right first time. You worked it out - that counts' },
+  { key: 'slow', label: 'Slow', icon: '\ud83d\udc22', fill: '#d97706',
+    tip: 'Right first time, but it took a while' },
+  { key: 'missed', label: 'Missed', icon: '\u274c\ufe0f', fill: '#e11d48',
+    tip: 'Needed more than one try' },
+];
+
 interface SessionResult {
   answers: Answer[];
   totalXp: number;
@@ -111,6 +142,10 @@ export function SummaryPage() {
   // response time are what separate "knew it cold" from "got there in the end".
   const difficulty = result.config.difficulty;
   const firstTryCorrect = answers.filter(a => isCleanFirstTry(a, difficulty)).length;
+  const bucketCounts = answers.reduce(
+    (acc, a) => { acc[bucketFor(a, difficulty)] += 1; return acc; },
+    { fast: 0, gotIt: 0, slow: 0, missed: 0 } as Record<SpeedBucket, number>
+  );
   const fastCount = answers.filter(a => isFastAnswer(a, difficulty)).length;
   const accuracy = totalQuestions > 0 ? Math.round((firstTryCorrect / totalQuestions) * 100) : 0;
   const fastRate = totalQuestions > 0 ? Math.round((fastCount / totalQuestions) * 100) : 0;
@@ -243,43 +278,77 @@ export function SummaryPage() {
           />
         </motion.div>
 
-        {/* Needs practice - missed or not yet fast. Sits high on the page so it
-            is read before the XP and combat sections. */}
-        {needsWork.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            className="bg-red-500/10 rounded-2xl p-4 mb-6 border border-red-500/30"
-          >
-            <div className="text-red-400 text-sm font-medium mb-2">
-              Missed or slow: {needsWork.length} of {totalQuestions}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {topNeedsWork.map(a => {
-                const missed = a.attempts > 1;
-                return (
+
+        {/* How the answers landed. A neutral container, because three of the
+            four buckets are a success and only one is a miss. */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="bg-slate-800/50 rounded-2xl p-4 mb-6 border border-slate-700"
+        >
+          <h3 className="text-slate-300 text-sm font-medium mb-3">How You Answered</h3>
+
+          {/* One bar, one segment per bucket, 2px gaps so the groups read apart */}
+          <div className="flex gap-[2px] h-3 mb-3" role="presentation">
+            {BUCKETS.filter(b => bucketCounts[b.key] > 0).map(b => (
+              <div
+                key={b.key}
+                className="rounded-full"
+                style={{ flexGrow: bucketCounts[b.key], backgroundColor: b.fill }}
+                data-tip={`${b.label}: ${bucketCounts[b.key]} of ${totalQuestions}`}
+              />
+            ))}
+          </div>
+
+          {/* Every bucket is listed, zeros included - "0 slow" is worth seeing */}
+          <div className="grid grid-cols-4 gap-2">
+            {BUCKETS.map(b => (
+              <div key={b.key} className="text-center" data-tip={b.tip}>
+                <div className="text-lg leading-none mb-1">{b.icon}</div>
+                <div className="text-white font-bold text-lg leading-none">
+                  {bucketCounts[b.key]}
+                </div>
+                <div className="flex items-center justify-center gap-1 mt-0.5">
                   <span
-                    key={a.questionId}
-                    className={`font-bold px-2 py-1 rounded-lg text-sm text-white ${
-                      missed ? 'bg-red-500/25' : 'bg-amber-500/25'
-                    }`}
-                  >
-                    {a.question.displayString}
-                    <span className={`font-normal ${missed ? 'text-red-300' : 'text-amber-300'}`}>
-                      {missed ? ` ×${a.attempts}` : ` ${formatMs(a.responseTimeMs)}`}
+                    className="inline-block w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: b.fill }}
+                  />
+                  <span className="text-xs text-slate-300">{b.label}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Name the facts behind the two buckets that are worth another go */}
+          {needsWork.length > 0 && (
+            <div className="mt-4 pt-3 border-t border-slate-700">
+              <div className="text-slate-400 text-sm font-medium mb-2">Worth another go</div>
+              <div className="flex flex-wrap gap-2">
+                {topNeedsWork.map(a => {
+                  const missed = a.attempts > 1;
+                  return (
+                    <span
+                      key={a.questionId}
+                      className="font-bold px-2 py-1 rounded-lg text-sm text-white"
+                      style={{ backgroundColor: missed ? '#e11d4833' : '#d9770633' }}
+                    >
+                      {a.question.displayString}
+                      <span className={`font-normal ${missed ? 'text-rose-300' : 'text-amber-300'}`}>
+                        {missed ? ` \u00d7${a.attempts}` : ` ${formatMs(a.responseTimeMs)}`}
+                      </span>
                     </span>
+                  );
+                })}
+                {needsWork.length > topNeedsWork.length && (
+                  <span className="text-slate-400 text-sm self-center">
+                    +{needsWork.length - topNeedsWork.length} more
                   </span>
-                );
-              })}
-              {needsWork.length > topNeedsWork.length && (
-                <span className="text-red-300 text-sm self-center">
-                  +{needsWork.length - topNeedsWork.length} more
-                </span>
-              )}
+                )}
+              </div>
             </div>
-          </motion.div>
-        )}
+          )}
+        </motion.div>
 
         {/* XP earned */}
         <motion.div
