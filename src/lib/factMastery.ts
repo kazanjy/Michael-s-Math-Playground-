@@ -126,7 +126,13 @@ export function getFactsNeedingPractice(
         const existing = data.get(key);
 
         if (existing) {
-          facts.push(existing);
+          // Multiply keys are normalised, so the record stored for "13 x 8" is
+          // the same fact as "8 x 13" - which is what we want for mastery. But
+          // it kept the operands in the order it was first seen, and the caller
+          // builds the question straight from them. Hand back the orientation
+          // that was actually asked for, or a session configured as the 8 table
+          // with multipliers 11-15 starts serving "13 x 8".
+          facts.push({ ...existing, operand1: primary, operand2: multiplier });
         } else {
           // Create a placeholder for unseen facts (mastery 0)
           facts.push({
