@@ -21,7 +21,7 @@ import {
   createEmptyResourceStats,
 } from '../lib/jetResources';
 import type { SessionConfig, Question, Answer, Rank, JetResources, DogfightResult, SessionResourceStats } from '../types';
-import { getQuestionThresholds, createDefaultSessionConfig } from '../types';
+import { getQuestionThresholds, createDefaultSessionConfig, normalizeMultiplierRanges } from '../types';
 
 type FeedbackState = {
   isCorrect: boolean;
@@ -48,7 +48,8 @@ export function PracticePage() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        return { ...defaults, ...parsed };
+        const merged = { ...defaults, ...parsed };
+        return { ...merged, multiplierRanges: normalizeMultiplierRanges(merged.multiplierRanges) };
       } catch {
         return defaults;
       }

@@ -6,7 +6,7 @@ import { FullscreenButton } from '../components/common/FullscreenButton';
 import { useFullscreen } from '../hooks/useFullscreen';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
-import { DIGIT_COMBOS, computeOperations, DIFFICULTY_LABELS } from '../types';
+import { DIGIT_COMBOS, computeOperations, DIFFICULTY_LABELS, MULTIPLIER_RANGES } from '../types';
 import type { SessionConfig, Operation, DigitCombo, Difficulty } from '../types';
 import { getXPProgressToNextRank } from '../lib/xpCalculator';
 import { loadCustomConfig, saveCustomConfig, loadMissionHistory } from '../lib/missionStorage';
@@ -328,12 +328,7 @@ export function HomePage() {
               <div>
                 <h4 className="text-slate-300 text-sm font-medium mb-2">Multiply By</h4>
                 <div className="grid grid-cols-4 gap-2">
-                  {[
-                    { label: '1-5', min: 1, max: 5, desc: 'Easier: multiply by 1, 2, 3, 4, or 5' },
-                    { label: '6-10', min: 6, max: 10, desc: 'Standard: multiply by 6, 7, 8, 9, or 10' },
-                    { label: '11-15', min: 11, max: 15, desc: 'Harder: multiply by 11, 12, 13, 14, or 15' },
-                    { label: '16-20', min: 16, max: 20, desc: 'Challenge: multiply by 16, 17, 18, 19, or 20' },
-                  ].map(range => {
+                  {MULTIPLIER_RANGES.map(range => {
                     const isSelected = config.multiplierRanges.some(
                       r => r.min === range.min && r.max === range.max
                     );

@@ -268,7 +268,7 @@ export function createDefaultSessionConfig(): SessionConfig {
     // Speed Times Tables
     speedOperations: ['multiply'],
     primaryNumbers: [2, 3, 4, 5],
-    multiplierRanges: [{ min: 1, max: 10 }],
+    multiplierRanges: [{ min: 1, max: 5 }, { min: 6, max: 10 }],
 
     // General Mental Math
     mentalMathOperations: [],
@@ -322,6 +322,29 @@ export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
 };
 
 // Difficulty multipliers (applied to Crazy base times)
+// The multiplier ranges the mission screen offers. Single source of truth: the
+// default config used to be written independently as {1,10}, which matched none
+// of these buttons - so it showed as nothing selected, could never be switched
+// off, and quietly kept feeding small multipliers into every session.
+export const MULTIPLIER_RANGES: { label: string; min: number; max: number; desc: string }[] = [
+  { label: '1-5', min: 1, max: 5, desc: 'Easier: multiply by 1, 2, 3, 4, or 5' },
+  { label: '6-10', min: 6, max: 10, desc: 'Standard: multiply by 6, 7, 8, 9, or 10' },
+  { label: '11-15', min: 11, max: 15, desc: 'Harder: multiply by 11, 12, 13, 14, or 15' },
+  { label: '16-20', min: 16, max: 20, desc: 'Challenge: multiply by 16, 17, 18, 19, or 20' },
+];
+
+// Snap stored ranges onto the ones the UI can actually show, so an old config
+// can always be seen and edited. Any overlap selects that button.
+export function normalizeMultiplierRanges(
+  ranges: { min: number; max: number }[] | undefined
+): { min: number; max: number }[] {
+  if (!ranges || ranges.length === 0) return [{ min: 1, max: 5 }, { min: 6, max: 10 }];
+  const picked = MULTIPLIER_RANGES.filter(r =>
+    ranges.some(stored => stored.min <= r.max && stored.max >= r.min)
+  ).map(({ min, max }) => ({ min, max }));
+  return picked.length > 0 ? picked : [{ min: 1, max: 5 }, { min: 6, max: 10 }];
+}
+
 export const DIFFICULTY_MULTIPLIERS: Record<Difficulty, number> = {
   crazy: 1.0,
   medium: 1.5,

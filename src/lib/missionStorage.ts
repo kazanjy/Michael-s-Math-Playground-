@@ -1,4 +1,4 @@
-import { createDefaultSessionConfig } from '../types';
+import { createDefaultSessionConfig, normalizeMultiplierRanges } from '../types';
 import type { SessionConfig } from '../types';
 
 // Persistence for the mission setup screen. This lives outside the page
@@ -26,8 +26,10 @@ export function loadCustomConfig(): SessionConfig {
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
-      // Merge with defaults to ensure all new fields exist
-      return { ...createDefaultSessionConfig(), ...parsed };
+      // Merge with defaults to ensure all new fields exist, and snap the
+      // multiplier ranges onto the buttons so an old config stays editable.
+      const merged = { ...createDefaultSessionConfig(), ...parsed };
+      return { ...merged, multiplierRanges: normalizeMultiplierRanges(merged.multiplierRanges) };
     } catch {
       // Invalid JSON, return default
     }
